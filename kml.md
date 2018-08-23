@@ -1,7 +1,8 @@
 # KML
 
-Kml is xml. Maybe I'll parse this in C++ using [tinyxml2](https://github.com/leethomason/tinyxml2). [Here](https://developers.google.com/kml/documentation/kml_tut) is a kml primer.
+Kml is xml. [Here](https://developers.google.com/kml/documentation/kml_tut) is a kml primer.
 
+Example kml file:
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
@@ -29,3 +30,5 @@ Kml is xml. Maybe I'll parse this in C++ using [tinyxml2](https://github.com/lee
 ```
 
 Looks like each location is separated by a space (" "), and each location consists of three comma-separated values: lat, lng, something else.
+
+Maybe I'll parse this in C++ using [tinyxml2](https://github.com/leethomason/tinyxml2).
