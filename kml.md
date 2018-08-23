@@ -1,6 +1,6 @@
 # KML
 
-Kml is xml. [Here](https://developers.google.com/kml/documentation/kml_tut) is a kml primer.
+Kml is xml, so we can parse this in C++ using [tinyxml2](https://github.com/leethomason/tinyxml2). [Here](https://developers.google.com/kml/documentation/kml_tut) is a kml primer.
 
 Example kml file:
 ```
@@ -30,5 +30,3 @@ Example kml file:
 ```
 
 Looks like each location is separated by a space (" "), and each location consists of three comma-separated values: lat, lng, something else.
-
-Maybe I'll parse this in C++ using [tinyxml2](https://github.com/leethomason/tinyxml2).
