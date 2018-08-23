@@ -1,6 +1,6 @@
 # KML
 
-Kml is xml, so we can parse this in C++ using [tinyxml2](https://github.com/leethomason/tinyxml2). [Here](https://developers.google.com/kml/documentation/kml_tut) is a kml primer.
+Kml is xml, so we can parse this in C++ using [tinyxml2](https://github.com/leethomason/tinyxml2). A primer on kml may be found [here](https://developers.google.com/kml/documentation/kml_tut).
 
 Example kml file:
 ```
