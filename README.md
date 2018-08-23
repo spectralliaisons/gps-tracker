@@ -39,7 +39,7 @@ Solar-powered GPS tracker that displays user's track, saving it to kml file on s
 - [ ] read from SD & display most recent 20 locations
 
 #### write kml
-- [ ] write & read from kml file instead of csv
+- [ ] write & read from [kml](./kml.md) file instead of csv
 
 ### display gps track
 - [ ] translate gps coords to screen pos (user's current location is screen center)
