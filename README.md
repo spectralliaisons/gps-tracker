@@ -41,6 +41,9 @@ Solar-powered GPS tracker that displays user's track, saving it to kml file on s
 #### write kml
 - [ ] write & read from [kml](./kml.md) file instead of csv
 
+### RAM test (read large kml)
+- [ ] Adafruit Feather M0 Adalogger has "256KB of FLASH + 32KB of RAM". kml files often exceed 32KB. Test reading a large file like [this 715KB one](./examples/kml/costa_rica_track.kml).
+
 ### display gps track
 - [ ] translate gps coords to screen pos (user's current location is screen center)
 - [ ] filter current track gps coords to only points that are visible on screen
