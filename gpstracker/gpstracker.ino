@@ -166,6 +166,11 @@ void updateGPSDisplay() {
       Serial.println(GPS.year, DEC);
       Serial.print("Fix: "); Serial.print((int)GPS.fix);
       Serial.print(" quality: "); Serial.println((int)GPS.fixquality);
+
+      tft.setTextColor(HX8357_WHITE); 
+      tft.setTextSize(2);
+      tft.setCursor(0, 30);
+      
       if (GPS.fix) {
         Serial.println("YES WE RECEIVED A FIX");
         Serial.print("FIX Location: ");
@@ -179,9 +184,6 @@ void updateGPSDisplay() {
         
         double alt = Pythagoras::cmToFeet(GPS.altitude);
         
-        tft.setTextColor(HX8357_WHITE); 
-        tft.setTextSize(2);
-        tft.setCursor(0, 30);
         tft.println("lat: " + String(GPS.latitudeDegrees, 10));
         tft.setCursor(0, 60);
         tft.println("lng: " + String(GPS.longitudeDegrees, 10));
@@ -192,6 +194,7 @@ void updateGPSDisplay() {
       }
       else {
         Serial.println("NO FIX");
+        tft.println("acquiring satellites...");
       }
     }
 }
