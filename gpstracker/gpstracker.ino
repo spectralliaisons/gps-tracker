@@ -9,7 +9,8 @@
 #include<stdlib.h>
 #include <math.h>
 #include <SPI.h>
-#include "./battery.h"
+#include "battery.h"
+#include "pythagoras.h"
 
 // battery pin for knowing battery life
 // refer to: https://learn.adafruit.com/adafruit-feather-m0-adalogger/power-management
@@ -175,15 +176,19 @@ void updateGPSDisplay() {
         Serial.print("FIX Angle: "); Serial.println(GPS.angle);
         Serial.print("FIX Altitude: "); Serial.println(GPS.altitude);
         Serial.print("FIX Satellites: "); Serial.println((int)GPS.satellites);
-      
+        
+        double alt = Pythagoras::cmToFeet(GPS.altitude);
+        
         tft.setTextColor(HX8357_WHITE); 
         tft.setTextSize(2);
         tft.setCursor(0, 30);
-        tft.println("latitude: " + String(GPS.latitude));
+        tft.println("lat: " + String(GPS.latitudeDegrees, 10));
         tft.setCursor(0, 60);
-        tft.println("longitude: " + String(GPS.longitude));
+        tft.println("lng: " + String(GPS.longitudeDegrees, 10));
         tft.setCursor(0, 90);
-        tft.println("altitude: " + String(GPS.altitude));
+        tft.println("altitude (feet): " + String(alt));
+        tft.setCursor(0, 120);
+        tft.println("satellites: " + String(GPS.satellites));
       }
       else {
         Serial.println("NO FIX");
