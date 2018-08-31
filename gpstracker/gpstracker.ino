@@ -12,7 +12,6 @@
 #include "battery.h"
 #include "gpsutil.h"
 #include "screenutil.h"
-#include "pythagoras.h"
 
 // battery pin for knowing battery life
 // refer to: https://learn.adafruit.com/adafruit-feather-m0-adalogger/power-management
@@ -74,18 +73,6 @@ void loop()
   // ------------------------------
   // -- handle GPS location info if we have it
   // --
-  if (gps->getGPS().fix) 
-  {
-    double alt = Pythagoras::cmToFeet(gps->getGPS().altitude);
-
-    int left = 5;
-    int top = 50;
-    screen->println(left, top*1, 2, HX8357_WHITE, "lat: " + String(gps->getGPS().latitudeDegrees, 10));
-    screen->println(left, top*2, 2, HX8357_WHITE, "lng: " + String(gps->getGPS().longitudeDegrees, 10));
-    screen->println(left, top*3, 2, HX8357_WHITE, "altitude (feet): " + String(alt));
-    screen->println(left, top*4, 2, HX8357_WHITE, "satellites: " + String(gps->getGPS().satellites));
-  }
-  else 
-    screen->println(0, 30, 2, WHITE, "WHERE MY SATELLITES AT");
+  screen->updateGPS(gps->getGPS());
 }
 
