@@ -1,14 +1,23 @@
 #include "Arduino.h"
 #include "battery.h"
 #include "pythagoras.h"
+#include "sdutil.h"
 
 #define VBAT_MAX 5.05 // intermittently goes up to 5.07
 #define VBAT_MIN 3.2
+
+#define LOG_BATTERY true
+#define LOG_DELAY 60000//60000
+#define LOG_NAME "battery.txt"
+uint32_t battTimer = millis();
 
 Battery::Battery(int pin)
 {
 	_pin = pin;
   _start = millis();
+
+  if (LOG_BATTERY)
+    SDUtil::remove(LOG_NAME);
 }
 
 String Battery::getCharge()
@@ -18,10 +27,21 @@ String Battery::getCharge()
 	v *= 3.3;  // Multiply by 3.3V, our reference voltage
 	v /= 1024; // convert to voltage
 
-//  Serial.println(String(millis() - _start) + "," + String(charge));
+  if (LOG_BATTERY)
+  {
+    // every once in a while log the battery life
+    // if millis() or timer wraps around, we'll just reset it
+    if (battTimer > millis()) battTimer = millis();
 
-  Serial.println(v);
-  Serial.println(String(millis() - _start) + "," + String(int(round(v))));
+    if (millis() - battTimer > LOG_DELAY)
+    {
+      battTimer = millis();
+
+      // log voltage with timestamp
+      String dataString = String(millis() - _start) + "," + String(v);
+      SDUtil::println(LOG_NAME, dataString);
+    }
+  }
   
 	float pct = Pythagoras::scale(VBAT_MIN, VBAT_MAX, 0.0, 100.0, v); // voltage from 0-100
 	

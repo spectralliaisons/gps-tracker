@@ -8,6 +8,7 @@
 
 #include<stdlib.h>
 #include <SPI.h>
+#include "sdutil.h"
 #include "battery.h"
 #include "gpsutil.h"
 #include "screenutil.h"
@@ -16,7 +17,7 @@
 // battery pin for knowing battery life
 // refer to: https://learn.adafruit.com/adafruit-feather-m0-adalogger/power-management
 #define VBATPIN A7
-Battery battery = Battery(VBATPIN);
+Battery *battery;
 
 // hardware serial port for GPS
 GpsUtil *gps;
@@ -34,6 +35,10 @@ void setup()
   while (!Serial) {;}
   Serial.println("Serial initialized.");
 
+  SDUtil::init();
+
+  battery = new Battery(VBATPIN);
+
   screen = new ScreenUtil();
   
   gps = new GpsUtil();
@@ -44,6 +49,10 @@ void setup()
  */
 void loop() 
 {
+  // e.g. debugging initialization
+  if (!gps || !screen || !battery)
+    return;
+   
   // read GPS and see if it's update time
   if (!gps->update())
     return;
@@ -54,7 +63,7 @@ void loop()
   // ------------------------------
   // -- refresh battery display
   // --
-  String charge = battery.getCharge();
+  String charge = battery->getCharge();
   
   // after analog read of battery pin, we must set it back to an input pin for the TFT display
   // https://forums.adafruit.com/viewtopic.php?f=57&t=139616&p=690795&hilit=TFT+analogRead#p690795 
