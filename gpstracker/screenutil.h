@@ -14,7 +14,7 @@ class ScreenUtil
   public:
     ScreenUtil();
     void cls();
-    void updateBatteryDisplay(String charge);
+    void updateBatteryDisplay(String displayCharge, bool isLow);
     void println(int x, int y, int size, int color, String str);
 };
 

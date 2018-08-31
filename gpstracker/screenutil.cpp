@@ -40,12 +40,12 @@ void ScreenUtil::cls()
   tft.fillScreen(HX8357_BLACK);
 }
 
-void ScreenUtil::updateBatteryDisplay(String charge)
+void ScreenUtil::updateBatteryDisplay(String displayCharge, bool isLow)
 {
-  tft.setCursor(0, 0);
-  tft.setTextColor(HX8357_GREEN); 
+  tft.setCursor(5, 5);
+  tft.setTextColor(isLow ? HX8357_RED : HX8357_GREEN); 
   tft.setTextSize(2);  
-  tft.println("[BATTERY] " + charge + "%");
+  tft.println("[BATTERY] " + displayCharge + "%");
 }
 
 void ScreenUtil::println(int x, int y, int size, int color, String str)

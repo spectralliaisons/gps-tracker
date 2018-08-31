@@ -5,6 +5,7 @@
 
 #define VBAT_MAX 5.05 // intermittently goes up to 5.07
 #define VBAT_MIN 3.2
+#define WARN_PCT 78 // 10
 
 #define LOG_BATTERY true
 #define LOG_DELAY 60000//60000
@@ -20,7 +21,7 @@ Battery::Battery(int pin)
     SDUtil::remove(LOG_NAME);
 }
 
-String Battery::getCharge()
+String Battery::displayCharge()
 {
 	float v = analogRead(_pin);
 	v *= 2;    // we divided by 2, so multiply back
@@ -43,7 +44,13 @@ String Battery::getCharge()
     }
   }
   
-	float pct = Pythagoras::scale(VBAT_MIN, VBAT_MAX, 0.0, 100.0, v); // voltage from 0-100
+	_percentCharge = Pythagoras::scale(VBAT_MIN, VBAT_MAX, 0.0, 100.0, v); // voltage from 0-100
 	
-	return String(v) + "V = " + String(pct);
+	return String(v) + "V = " + String(_percentCharge);
 }
+
+bool Battery::isLow()
+{
+  return _percentCharge <= WARN_PCT;
+}
+

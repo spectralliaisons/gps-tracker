@@ -63,13 +63,13 @@ void loop()
   // ------------------------------
   // -- refresh battery display
   // --
-  String charge = battery->getCharge();
+  String displayCharge = battery->displayCharge();
   
   // after analog read of battery pin, we must set it back to an input pin for the TFT display
   // https://forums.adafruit.com/viewtopic.php?f=57&t=139616&p=690795&hilit=TFT+analogRead#p690795 
   pinMode(VBATPIN, INPUT_PULLUP);
   
-  screen->updateBatteryDisplay(charge);
+  screen->updateBatteryDisplay(displayCharge, battery->isLow());
 
   // ------------------------------
   // -- handle GPS location info if we have it
@@ -78,10 +78,12 @@ void loop()
   {
     double alt = Pythagoras::cmToFeet(gps->getGPS().altitude);
 
-    screen->println(0, 30, 2, HX8357_WHITE, "lat: " + String(gps->getGPS().latitudeDegrees, 10));
-    screen->println(0, 60, 2, HX8357_WHITE, "lng: " + String(gps->getGPS().longitudeDegrees, 10));
-    screen->println(0, 90, 2, HX8357_WHITE, "altitude (feet): " + String(alt));
-    screen->println(0, 120, 2, HX8357_WHITE, "satellites: " + String(gps->getGPS().satellites));
+    int left = 5;
+    int top = 50;
+    screen->println(left, top*1, 2, HX8357_WHITE, "lat: " + String(gps->getGPS().latitudeDegrees, 10));
+    screen->println(left, top*2, 2, HX8357_WHITE, "lng: " + String(gps->getGPS().longitudeDegrees, 10));
+    screen->println(left, top*3, 2, HX8357_WHITE, "altitude (feet): " + String(alt));
+    screen->println(left, top*4, 2, HX8357_WHITE, "satellites: " + String(gps->getGPS().satellites));
   }
   else 
     screen->println(0, 30, 2, WHITE, "WHERE MY SATELLITES AT");

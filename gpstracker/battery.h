@@ -7,8 +7,10 @@ class Battery
 {
   public:
     Battery(int pin);
-    String getCharge();
+    String displayCharge();
+    bool isLow();
   private:
+    float _percentCharge;
     int _pin;
     int _start;
 };
