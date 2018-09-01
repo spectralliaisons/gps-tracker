@@ -16,13 +16,14 @@ class ScreenUtil
 {
   public:
     ScreenUtil();
-    void cls();
     void updateBatteryDisplay(String displayCharge, bool isLow);
     void println(int x, int y, int size, int color, String str);
     void updateGPS(Adafruit_GPS gps);
    private:
     int width();
     int height();
+    void drawBorder(int color);
+    String _lastDisplayedCharge;
 };
 
 #endif

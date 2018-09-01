@@ -18,22 +18,8 @@ ScreenUtil::ScreenUtil()
   tft.begin(HX8357D);
   tft.setRotation(1);
   tft.fillScreen(HX8357_BLACK);
-  tft.setCursor(0,120);
-  tft.setTextColor(HX8357_GREEN); 
-  tft.setTextSize(7);
-  tft.println("bienvenidos");
 
-  // read diagnostics (optional but can help debug problems)
-  uint8_t x = tft.readcommand8(HX8357_RDPOWMODE);
-  Serial.print("Display Power Mode: 0x"); Serial.println(x, HEX);
-  x = tft.readcommand8(HX8357_RDMADCTL);
-  Serial.print("MADCTL Mode: 0x"); Serial.println(x, HEX);
-  x = tft.readcommand8(HX8357_RDCOLMOD);
-  Serial.print("Pixel Format: 0x"); Serial.println(x, HEX);
-  x = tft.readcommand8(HX8357_RDDIM);
-  Serial.print("Image Format: 0x"); Serial.println(x, HEX);
-  x = tft.readcommand8(HX8357_RDDSDR);
-  Serial.print("Self Diagnostic: 0x"); Serial.println(x, HEX);
+  _lastDisplayedCharge = "";
 }
 
 int ScreenUtil::width()
@@ -46,21 +32,19 @@ int ScreenUtil::height()
   return tft.height();
 }
 
-void ScreenUtil::cls()
-{
-  tft.fillScreen(HX8357_BLACK);
-}
-
 void ScreenUtil::updateBatteryDisplay(String displayCharge, bool isLow)
 {
-  tft.setCursor(10, 15);
-  tft.setTextColor(isLow ? HX8357_RED : HX8357_GREEN); 
-  tft.setTextSize(2);  
-  tft.println("[BATTERY] " + displayCharge + "%");
+  // to save power, only redraw if changed
+  if (_lastDisplayedCharge != displayCharge)
+  {
+    println(10, 15, 2, isLow ? HX8357_RED : HX8357_GREEN, "[BATTERY] " + displayCharge + "%"); 
+    _lastDisplayedCharge = displayCharge;
+  }
 }
 
 void ScreenUtil::println(int x, int y, int size, int color, String str)
 {
+  tft.fillRect(x, y, width()-4-x, size*7, HX8357_BLACK); // HX8357_BLUE for debugging to see "text field" area
   tft.setCursor(x, y);
   tft.setTextSize(size);
   tft.setTextColor(color); 
@@ -71,29 +55,40 @@ void ScreenUtil::updateGPS(Adafruit_GPS gps)
 {
   int left = 10;
   int top = 45;
-    
+
+  String lat, lng, alt, sat;
+
   if (gps.fix) 
   {
-    double alt = Pythagoras::cmToFeet(gps.altitude);
+    lat = String(gps.latitudeDegrees, 10);
+    lng = String(gps.longitudeDegrees, 10);
+    alt = Pythagoras::cmToFeet(gps.altitude);
+    sat = String(gps.satellites);
 
-    println(left, top*1, 2, HX8357_WHITE, "lat: " + String(gps.latitudeDegrees, 10));
-    println(left, top*2, 2, HX8357_WHITE, "lng: " + String(gps.longitudeDegrees, 10));
-    println(left, top*3, 2, HX8357_WHITE, "altitude (feet): " + String(alt));
-    println(left, top*4, 2, HX8357_WHITE, "satellites: " + String(gps.satellites));
+    drawBorder(HX8357_BLACK);
   }
   else 
   {
-    println(left, top, 2, WHITE, "WHERE MY SATELLITES AT");
+    lat = lng = alt = sat = "??";
 
-    // red screen border
-    tft.drawFastHLine(0, 0, width(), HX8357_RED);
-    tft.drawFastHLine(0, height()-1, width(), HX8357_RED);
-    tft.drawFastVLine(0, 0, height(), HX8357_RED);
-    tft.drawFastVLine(width()-1, 0, height(), HX8357_RED);
-    tft.drawFastHLine(1, 1, width()-2, HX8357_RED);
-    tft.drawFastHLine(1, height()-2, width(), HX8357_RED);
-    tft.drawFastVLine(1, 1, height()-2, HX8357_RED);
-    tft.drawFastVLine(width()-2, 1, height()-2, HX8357_RED);
+    drawBorder(HX8357_RED);
   }
+
+  println(left, top, 2, HX8357_WHITE, "lat: " + lat);
+  println(left, top*2, 2, HX8357_WHITE, "lng: " + lng);
+  println(left, top*3, 2, HX8357_WHITE, "altitude (feet): " + alt);
+  println(left, top*4, 2, HX8357_WHITE, "satellites: " + sat);
+}
+
+void ScreenUtil::drawBorder(int color)
+{
+  tft.drawFastHLine(0, 0, width(), color);
+  tft.drawFastHLine(0, height()-1, width(), color);
+  tft.drawFastVLine(0, 0, height(), color);
+  tft.drawFastVLine(width()-1, 0, height(), color);
+  tft.drawFastHLine(1, 1, width()-2, color);
+  tft.drawFastHLine(1, height()-2, width(), color);
+  tft.drawFastVLine(1, 1, height()-2, color);
+  tft.drawFastVLine(width()-2, 1, height()-2, color);
 }
 

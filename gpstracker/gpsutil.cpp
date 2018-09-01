@@ -1,4 +1,4 @@
-#include "Arduino.h"
+REG#include "Arduino.h"
 #include "gpsutil.h"
 
 #define GPSSerial Serial1

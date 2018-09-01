@@ -46,7 +46,8 @@ String Battery::displayCharge()
   
 	_percentCharge = Pythagoras::scale(VBAT_MIN, VBAT_MAX, 0.0, 100.0, v); // voltage from 0-100
 	
-	return String(v) + "V = " + String(_percentCharge);
+//	return String(v) + "V = " + String(_percentCharge);
+  return String(int(round(_percentCharge)));
 }
 
 bool Battery::isLow()

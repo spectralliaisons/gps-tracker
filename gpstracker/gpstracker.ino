@@ -56,9 +56,6 @@ void loop()
   if (!gps->update())
     return;
   
-  // refresh entire display
-  screen->cls();
-
   // ------------------------------
   // -- refresh battery display
   // --
