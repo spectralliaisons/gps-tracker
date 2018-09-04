@@ -24,6 +24,7 @@ class ScreenUtil
     int height();
     void drawBorder(int color);
     String _lastDisplayedCharge;
+    String _lastDisplayedPosition;
 };
 
 #endif

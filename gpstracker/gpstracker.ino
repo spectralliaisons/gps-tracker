@@ -31,7 +31,7 @@ void setup()
 {  
   // initialize console logging & wait for serial port to connect.
   Serial.begin(115200);
-  while (!Serial) {;}
+//  while (!Serial) {;}
   Serial.println("Serial initialized.");
 
   SDUtil::init();

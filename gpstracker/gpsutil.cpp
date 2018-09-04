@@ -1,10 +1,10 @@
-REG#include "Arduino.h"
+#include "Arduino.h"
 #include "gpsutil.h"
 
 #define GPSSerial Serial1
 #define REFRESH_MS 2000
 
-#define LOG false
+#define LOG true
 
 // Connect to the GPS on the hardware port
 Adafruit_GPS GPS(&GPSSerial);

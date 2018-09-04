@@ -9,8 +9,12 @@
 #define SD_CS    5t
 #define TFT_RST -1
 
+#define NONE "??";
+
 // Use hardware SPI and the above for CS/DC
 Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
+
+int toggle = 1;
 
 ScreenUtil::ScreenUtil()
 {
@@ -19,7 +23,8 @@ ScreenUtil::ScreenUtil()
   tft.setRotation(1);
   tft.fillScreen(HX8357_BLACK);
 
-  _lastDisplayedCharge = "";
+  _lastDisplayedCharge = NONE;
+  _lastDisplayedPosition = NONE;
 }
 
 int ScreenUtil::width()
@@ -58,26 +63,41 @@ void ScreenUtil::updateGPS(Adafruit_GPS gps)
 
   String lat, lng, alt, sat;
 
+  // BEGIN TEST BACKLIGHT
+//  if (toggle)
+//  {
+//    analogWrite(46,0);
+//  }
+//  else
+//  {
+//    analogWrite(46,255);
+//  }
+//  toggle *= -1;
+  // END TEST
+
   if (gps.fix) 
   {
     lat = String(gps.latitudeDegrees, 10);
     lng = String(gps.longitudeDegrees, 10);
     alt = Pythagoras::cmToFeet(gps.altitude);
     sat = String(gps.satellites);
-
-    drawBorder(HX8357_BLACK);
   }
   else 
+    lat = lng = alt = sat = NONE;
+
+  String currPos = String(lat) + "_" + String(lng);
+  
+  if (_lastDisplayedPosition != currPos)
   {
-    lat = lng = alt = sat = "??";
-
-    drawBorder(HX8357_RED);
+    _lastDisplayedPosition = currPos;
+    
+    println(left, top, 2, HX8357_WHITE, "lat: " + lat);
+    println(left, top*2, 2, HX8357_WHITE, "lng: " + lng);
+    println(left, top*3, 2, HX8357_WHITE, "altitude (feet): " + alt);
+    println(left, top*4, 2, HX8357_WHITE, "satellites: " + sat);
+    
+    drawBorder(gps.fix ? HX8357_BLACK : HX8357_RED);
   }
-
-  println(left, top, 2, HX8357_WHITE, "lat: " + lat);
-  println(left, top*2, 2, HX8357_WHITE, "lng: " + lng);
-  println(left, top*3, 2, HX8357_WHITE, "altitude (feet): " + alt);
-  println(left, top*4, 2, HX8357_WHITE, "satellites: " + sat);
 }
 
 void ScreenUtil::drawBorder(int color)
