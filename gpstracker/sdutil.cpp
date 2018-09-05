@@ -11,7 +11,8 @@ void SDUtil::init()
   Serial.print("Initializing SD card...");
 
   // see if the card is present and can be initialized:
-  if (!SD.begin(SD_CHIP)) {
+  if (!SD.begin(SD_CHIP)) 
+  {
     Serial.println("Card failed, or not present!");
     // don't do anything more:
     return;
@@ -28,7 +29,7 @@ void SDUtil::remove(String file)
     Serial.println("could not find existing file: " + file); 
 }
 
-void SDUtil::println(String file, String dataString)
+void SDUtil::print(String file, String dataString, bool newLine)
 {
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
@@ -37,10 +38,16 @@ void SDUtil::println(String file, String dataString)
   // if the file is available, write to it:
   if (dataFile)
   {
-    dataFile.println(dataString);
+    if (newLine)
+      dataFile.println(dataString);
+    else
+      dataFile.print(dataString);
+    
     dataFile.close();
-    Serial.println("wrote to SD: " + dataString);
+    
+//    Serial.println("wrote to SD: " + dataString);
   }
   else
     Serial.println("ERROR: NO SD FILE");
 }
+

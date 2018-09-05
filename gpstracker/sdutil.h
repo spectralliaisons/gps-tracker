@@ -8,7 +8,7 @@ class SDUtil
   public:
     static void init();
     static void remove(String file);
-    static void println(String file, String dataString);
+    static void print(String file, String dataString, bool newLine=false);
 };
 
 #endif

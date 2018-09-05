@@ -7,7 +7,7 @@
 #define REFRESH_MS 2000
 
 #define LOG_GPS true
-#define LOG_NAME "gpstrak.txt" // TODO: increment based on found files
+#define LOG_NAME "GPSTEST.TXT" // "gpstrak.txt" // TODO: increment based on found files
 
 #define LOG true
 
@@ -22,7 +22,7 @@ GpsUtil::GpsUtil()
   {
     // TODO: curr log name increments based on found files
     _currLog = LOG_NAME;
-    SDUtil::remove(_currLog);
+//    SDUtil::remove(_currLog);
   }
     
 	_refreshMs = REFRESH_MS;
@@ -93,24 +93,20 @@ bool GpsUtil::update()
   
           if (GPS.fix)
           {
-            Serial.println();
-            Serial.println("------------------------ !!! YES WE RECEIVED A FIX !!! ------------------------");
-            Serial.print("FIX Location: ");
-            Serial.print(GPS.latitude, 4); Serial.print(GPS.lat);
-            Serial.print(", ");
-            Serial.print(GPS.longitude, 4); Serial.println(GPS.lon);
-            Serial.print("FIX Speed (knots): "); Serial.println(GPS.speed);
-            Serial.print("FIX Angle: "); Serial.println(GPS.angle);
-            Serial.print("FIX Altitude: "); Serial.println(GPS.altitude);
-            Serial.print("FIX Satellites: "); Serial.println((int)GPS.satellites);
-            Serial.println("-------------------------------------------------------------------------------");
+//            Serial.println();
+//            Serial.println("------------------------ !!! YES WE RECEIVED A FIX !!! ------------------------");
+//            Serial.print("FIX Location: ");
+//            Serial.print(GPS.latitude, 4); Serial.print(GPS.lat);
+//            Serial.print(", ");
+//            Serial.print(GPS.longitude, 4); Serial.println(GPS.lon);
+//            Serial.print("FIX Speed (knots): "); Serial.println(GPS.speed);
+//            Serial.print("FIX Angle: "); Serial.println(GPS.angle);
+//            Serial.print("FIX Altitude: "); Serial.println(GPS.altitude);
+//            Serial.print("FIX Satellites: "); Serial.println((int)GPS.satellites);
+//            Serial.println("-------------------------------------------------------------------------------");
 
-            logCurrentPosition();
+//            logCurrentPosition();
           }
-          else
-          {
-            Serial.println(millis() - _start);
-          } 
         }
         
   			return true;
@@ -126,8 +122,8 @@ void GpsUtil::logCurrentPosition()
 {
   String latStr = String(GPS.latitudeDegrees, 10);
   String lngStr = String(GPS.longitudeDegrees, 10);
-  String posLn = latStr + "," + lngStr + ",0"; // TODO: what's up with the ",0" ?
-  SDUtil::println(_currLog, posLn);
+  String posLn = " " + latStr + "," + lngStr + ",0"; // TODO: what's up with the ",0"?
+  SDUtil::print(_currLog, posLn);
 }
 
 position GpsUtil::stringToPosition(String str)

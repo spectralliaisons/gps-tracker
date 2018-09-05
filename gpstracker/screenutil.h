@@ -26,7 +26,7 @@ class ScreenUtil
     void updateBatteryDisplay(String displayCharge, bool isLow);
     void println(int x, int y, int size, int color, String str);
     void updateGPSText(Adafruit_GPS gps);
-    void updateGPSMap(File file);
+    int updateGPSMap(File file);
    private:
     int width();
     int height();

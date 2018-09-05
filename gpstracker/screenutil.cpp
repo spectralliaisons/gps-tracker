@@ -72,18 +72,6 @@ void ScreenUtil::updateGPSText(Adafruit_GPS gps)
 
   String lat, lng, alt, sat;
 
-  // BEGIN TEST BACKLIGHT
-//  if (toggle)
-//  {
-//    analogWrite(46,0);
-//  }
-//  else
-//  {
-//    analogWrite(46,255);
-//  }
-//  toggle = !toggle;
-  // END TEST
-
   if (gps.fix) 
   {
     lat = String(gps.latitudeDegrees, 10);
@@ -102,8 +90,8 @@ void ScreenUtil::updateGPSText(Adafruit_GPS gps)
     
     println(left, top, 2, HX8357_WHITE, "lat: " + lat);
     println(left, top*2, 2, HX8357_WHITE, "lng: " + lng);
-//    println(left, top*3, 2, HX8357_WHITE, "altitude (feet): " + alt);
-//    println(left, top*4, 2, HX8357_WHITE, "satellites: " + sat);
+    println(left, top*3, 2, HX8357_WHITE, "altitude (feet): " + alt);
+    println(left, top*4, 2, HX8357_WHITE, "satellites: " + sat);
     
     drawBorder(gps.fix ? HX8357_BLACK : HX8357_RED);
   }
@@ -123,13 +111,15 @@ void ScreenUtil::drawBorder(int color)
 
 // DISPLAY GPS COORDS
 
-void ScreenUtil::updateGPSMap(File file)
+// returns number of bytes written to gps track on sd card
+int ScreenUtil::updateGPSMap(File file)
 {
+  int bytesWritten = 0;
+  
   if (!file)
-  {
-    Serial.println("ERROR: could not open gps track");
-    return;
-  }
+    return bytesWritten;
+
+  Serial.println("updateGPSMap() BEGIN");
   
   // read from the file until there's nothing else in it:
   int numPointsOnscreen = 0;
@@ -138,26 +128,33 @@ void ScreenUtil::updateGPSMap(File file)
     // read one byte at a time
     // file:///Applications/Arduino.app/Contents/Java/reference/www.arduino.cc/en/Serial/Read.html
     int line = file.read();
+
+    bytesWritten += Serial.write(line);
+    
 //    position pos = GpsUtil::stringToPosition(line);
-    position pos;
-    pos.lat = 0;
-    pos.lng = 0;
-
-    String latStr = String(pos.lat, 10);
-    String lngStr = String(pos.lng, 10);
-    String posStr = "(" + latStr + ", " + lngStr + ")";
-    Serial.println("GPS POSITION FROM DISC: " + posStr);
-
-    // only draw visible locations (gps coordinates that translate onto visible screen coords)
-    if (positionIsOnScreen(pos))
-    {
-      println(10, 45 + numPointsOnscreen*2*7, 2, HX8357_WHITE, posStr);
-      numPointsOnscreen++;
-    }
+//    position pos;
+//    pos.lat = 0;
+//    pos.lng = 0;
+//
+//    String latStr = String(pos.lat, 10);
+//    String lngStr = String(pos.lng, 10);
+//    String posStr = "(" + latStr + ", " + lngStr + ")";
+//    Serial.println("GPS POSITION FROM DISC: " + posStr);
+//
+//    // only draw visible locations (gps coordinates that translate onto visible screen coords)
+//    if (positionIsOnScreen(pos))
+//    {
+//      println(10, 45 + numPointsOnscreen*2*7, 2, HX8357_WHITE, posStr);
+//      numPointsOnscreen++;
+//    }
   }
   
   // close the file
   file.close();
+
+  Serial.println("updateGPSMap() END");
+
+  return bytesWritten;
 }
 
 bool ScreenUtil::positionIsOnScreen(position pos)

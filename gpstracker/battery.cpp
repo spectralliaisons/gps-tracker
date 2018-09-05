@@ -42,7 +42,7 @@ String Battery::displayCharge()
 
       // log voltage with timestamp
       String dataString = String(millis() - _start) + "," + String(v);
-      SDUtil::println(LOG_NAME, dataString);
+      SDUtil::print(LOG_NAME, dataString, true);
     }
   }
   
