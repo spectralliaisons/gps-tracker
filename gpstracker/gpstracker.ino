@@ -31,7 +31,7 @@ void setup()
 {  
   // initialize console logging & wait for serial port to connect.
   Serial.begin(115200);
-//  while (!Serial) {;}
+//  while (!Serial) {;} // only uncomment this if you're connected via USB or else board reset will not work!
   Serial.println("Serial initialized.");
 
   SDUtil::init();
@@ -55,7 +55,13 @@ void loop()
   // read GPS and see if it's update time
   if (!gps->update())
     return;
-  
+
+  // ------------------------------
+  // -- handle GPS location info if we have it
+  // --
+  screen->updateGPSMap(gps->getFileFromDisc());
+  screen->updateGPSText(gps->getGPS());
+
   // ------------------------------
   // -- refresh battery display
   // --
@@ -66,10 +72,5 @@ void loop()
   pinMode(VBATPIN, INPUT_PULLUP);
   
   screen->updateBatteryDisplay(displayCharge, battery->isLow());
-
-  // ------------------------------
-  // -- handle GPS location info if we have it
-  // --
-  screen->updateGPS(gps->getGPS());
 }
 

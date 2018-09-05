@@ -9,8 +9,15 @@
 
 // GPS
 #include <Adafruit_GPS.h>
+#include "gpsutil.h"
 
 #define WHITE HX8357_WHITE
+
+struct point
+{
+  int x;
+  int y;
+};
 
 class ScreenUtil
 {
@@ -18,13 +25,17 @@ class ScreenUtil
     ScreenUtil();
     void updateBatteryDisplay(String displayCharge, bool isLow);
     void println(int x, int y, int size, int color, String str);
-    void updateGPS(Adafruit_GPS gps);
+    void updateGPSText(Adafruit_GPS gps);
+    void updateGPSMap(File file);
    private:
     int width();
     int height();
     void drawBorder(int color);
     String _lastDisplayedCharge;
     String _lastDisplayedPosition;
+    int _zoom;
+    bool positionIsOnScreen(position pos);
+    point positionToPoint(position pos);
 };
 
 #endif

@@ -11,10 +11,12 @@
 
 #define NONE "??";
 
+#define DEF_ZOOM 10;
+
 // Use hardware SPI and the above for CS/DC
 Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
 
-int toggle = 1;
+bool toggle = true;
 
 ScreenUtil::ScreenUtil()
 {
@@ -25,6 +27,8 @@ ScreenUtil::ScreenUtil()
 
   _lastDisplayedCharge = NONE;
   _lastDisplayedPosition = NONE;
+
+  _zoom = DEF_ZOOM;
 }
 
 int ScreenUtil::width()
@@ -56,7 +60,7 @@ void ScreenUtil::println(int x, int y, int size, int color, String str)
   tft.println(str);
 }
 
-void ScreenUtil::updateGPS(Adafruit_GPS gps)
+void ScreenUtil::updateGPSText(Adafruit_GPS gps)
 {
   int left = 10;
   int top = 45;
@@ -72,7 +76,7 @@ void ScreenUtil::updateGPS(Adafruit_GPS gps)
 //  {
 //    analogWrite(46,255);
 //  }
-//  toggle *= -1;
+//  toggle = !toggle;
   // END TEST
 
   if (gps.fix) 
@@ -93,8 +97,8 @@ void ScreenUtil::updateGPS(Adafruit_GPS gps)
     
     println(left, top, 2, HX8357_WHITE, "lat: " + lat);
     println(left, top*2, 2, HX8357_WHITE, "lng: " + lng);
-    println(left, top*3, 2, HX8357_WHITE, "altitude (feet): " + alt);
-    println(left, top*4, 2, HX8357_WHITE, "satellites: " + sat);
+//    println(left, top*3, 2, HX8357_WHITE, "altitude (feet): " + alt);
+//    println(left, top*4, 2, HX8357_WHITE, "satellites: " + sat);
     
     drawBorder(gps.fix ? HX8357_BLACK : HX8357_RED);
   }
@@ -110,5 +114,59 @@ void ScreenUtil::drawBorder(int color)
   tft.drawFastHLine(1, height()-2, width(), color);
   tft.drawFastVLine(1, 1, height()-2, color);
   tft.drawFastVLine(width()-2, 1, height()-2, color);
+}
+
+// DISPLAY GPS COORDS
+
+void ScreenUtil::updateGPSMap(File file)
+{
+  if (!file)
+  {
+    Serial.println("ERROR: could not open gps track");
+    return;
+  }
+  
+  // read from the file until there's nothing else in it:
+  int numPointsOnscreen = 0;
+  while (file.available()) 
+  {
+    // read one byte at a time
+    // file:///Applications/Arduino.app/Contents/Java/reference/www.arduino.cc/en/Serial/Read.html
+    int line = file.read();
+//    position pos = GpsUtil::stringToPosition(line);
+    position pos;
+    pos.lat = 0;
+    pos.lng = 0;
+
+    String latStr = String(pos.lat, 10);
+    String lngStr = String(pos.lng, 10);
+    String posStr = "(" + latStr + ", " + lngStr + ")";
+    Serial.println("GPS POSITION FROM DISC: " + posStr);
+
+    // only draw visible locations (gps coordinates that translate onto visible screen coords)
+    if (positionIsOnScreen(pos))
+    {
+      println(10, 45 + numPointsOnscreen*2*7, 2, HX8357_WHITE, posStr);
+      numPointsOnscreen++;
+    }
+  }
+  
+  // close the file
+  file.close();
+}
+
+bool ScreenUtil::positionIsOnScreen(position pos)
+{
+  point p = positionToPoint(pos);
+  return (0 <= p.x <= width()) && (0 <= p.y <= height());
+}
+
+point ScreenUtil::positionToPoint(position pos)
+{
+  // use _zoom
+  point p;
+  p.x = width() / 2;
+  p.y = height() / 2;
+  return p;
 }
 

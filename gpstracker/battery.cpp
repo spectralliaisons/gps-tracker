@@ -3,9 +3,11 @@
 #include "pythagoras.h"
 #include "sdutil.h"
 
-#define VBAT_MAX 5.05 // intermittently goes up to 5.07
-#define VBAT_MIN 3.2
-#define WARN_PCT 78 // 10
+// battery specs say the voltage goes down to 3.2, but based on my tests the values below indicate the observed range before death
+// https://docs.google.com/spreadsheets/d/1li3eQBzjuMfZsQG_ix9UlOx6P3qg4OEhaA5oD-0nIow/edit#gid=179140147
+#define VBAT_MAX 5.04 // intermittently goes up to 5.07
+#define VBAT_MIN 4.6 // 3.2
+#define WARN_PCT 10
 
 #define LOG_BATTERY true
 #define LOG_DELAY 60000//60000
