@@ -9,6 +9,9 @@
 #define SD_CS    5t
 #define TFT_RST -1
 
+#define BACKLIGHT_PIN 12 // analogWrite(12,0); // analogWrite(12,255);
+#define BACKLIGHT_LEVEL 10
+
 #define NONE "??";
 
 #define DEF_ZOOM 10;
@@ -24,6 +27,8 @@ ScreenUtil::ScreenUtil()
   tft.begin(HX8357D);
   tft.setRotation(1);
   tft.fillScreen(HX8357_BLACK);
+
+  analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL);
 
   _lastDisplayedCharge = NONE;
   _lastDisplayedPosition = NONE;
