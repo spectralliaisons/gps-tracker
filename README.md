@@ -1,5 +1,8 @@
 # gpstracker
 
+## proof of concept up and running
+![an image examplar](./examples/proofofconcept.jpg)
+
 ## overview
 
 ### minimum viable product:
