@@ -6,9 +6,6 @@
 #define GPSSerial Serial1
 #define REFRESH_MS 2000
 
-#define PRECISION_READ 10
-#define PRECISION_WRITE 7
-
 #define LOG_GPS true
 #define LOG_NAME "GPSTEST.TXT" // "gpstrak.txt" // TODO: increment based on found files
 
@@ -53,14 +50,9 @@ Adafruit_GPS GpsUtil::getGPS()
 	return GPS;
 }
 
-int GpsUtil::precisionRead()
+int GpsUtil::precision()
 {
-  return PRECISION_READ;
-}
-
-int GpsUtil::precisionWrite()
-{
-  return PRECISION_WRITE;
+  return 10;
 }
 
 File GpsUtil::getFileFromDisc()
@@ -133,9 +125,9 @@ bool GpsUtil::update()
 // log curr pos to SD card
 void GpsUtil::logCurrentPosition()
 {
-  String latStr = String(GPS.latitudeDegrees, GpsUtil::precisionWrite());
-  String lngStr = String(GPS.longitudeDegrees, GpsUtil::precisionWrite());
-  String posLn = " " + latStr + "," + lngStr + ",0"; // TODO: what's up with the ",0"?
+  String latStr = String(GPS.latitudeDegrees, GpsUtil::precision());
+  String lngStr = String(GPS.longitudeDegrees, GpsUtil::precision());
+  String posLn = " " + lngStr + "," + latStr + ",0"; // TODO: what's up with the ",0"?
   SDUtil::print(_currLog, posLn);
 }
 
@@ -144,18 +136,18 @@ position GpsUtil::stringToPosition(String str)
   int firstComma = str.indexOf(",");
   int secondComma = str.indexOf(",", firstComma+1);
 
-  String latStr = str.substring(0, firstComma);
-  String lngStr = str.substring(firstComma+1, secondComma);
+  String lngStr = str.substring(0, firstComma);
+  String latStr = str.substring(firstComma+1, secondComma);
 
-  Serial.println("#1S: " + latStr);
-  Serial.println("#2S: " + lngStr);
+//  Serial.println("#1S: " + latStr);
+//  Serial.println("#2S: " + lngStr);
 
   position p;
   p.lat = latStr.toFloat();
   p.lng = lngStr.toFloat();
 
-  Serial.println("#1F: " + String(p.lat, GpsUtil::precisionRead()));
-  Serial.println("#2F: " + String(p.lng, GpsUtil::precisionRead()));
+//  Serial.println("#1F: " + String(p.lat, GpsUtil::precision()));
+//  Serial.println("#2F: " + String(p.lng, GpsUtil::precision()));
   
   return p;
 }

@@ -18,8 +18,7 @@ class GpsUtil
   	Adafruit_GPS getGPS();
     File getFileFromDisc();
     static position stringToPosition(String str);
-    static int precisionRead();
-    static int precisionWrite();
+    static int precision();
     static float getFeetBetweenPositions(position p1, position p2);
   private:
   	int _refreshMs;

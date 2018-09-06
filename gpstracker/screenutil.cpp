@@ -34,7 +34,6 @@ ScreenUtil::ScreenUtil(String initMsg)
 
   analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL);
 
-  _zoom = DEF_ZOOM;
   _batteryBottomPos = -999;
   _lastMsg = "";
 
@@ -50,19 +49,10 @@ void ScreenUtil::showMsg(String msg)
 
   _lastMsg = msg;
   
-  // clear screen
-//  tft.fillScreen(BG);
-  
-  if (msg.length())
-  {
-    println(0, 0, DEF_TEXT_SIZE, HX8357_WHITE, msg, HX8357_RED);
+  println(0, 0, DEF_TEXT_SIZE, HX8357_WHITE, msg, HX8357_RED);
 
-    // make way for the message
-    _window.y = textHeightForSize(DEF_TEXT_SIZE);
-  }
-  else
-    _window.y = 0;
-  
+  // make way for the message
+  _window.y = textHeightForSize(DEF_TEXT_SIZE);
   _window.x = 0;
   _window.width = tft.width();
   _window.height = tft.height() - _window.y;
@@ -71,8 +61,8 @@ void ScreenUtil::showMsg(String msg)
   _batteryBottomPos = _batteryTopPos + textHeightForSize(DEF_TEXT_SIZE);
 
   // force all to redraw based on new window rect
-  _lastDisplayedCharge = "";
-  _lastDisplayedPosition = "";
+//  _lastDisplayedCharge = "";
+//  _lastDisplayedPosition = "";
 }
 
 int ScreenUtil::textHeightForSize(int size)
@@ -163,32 +153,28 @@ void ScreenUtil::updateGPSText(Adafruit_GPS gps)
 
 // DISPLAY GPS COORDS
 
-// returns number of bytes written to gps track on sd card
-int ScreenUtil::updateGPSMap(File file)
+void ScreenUtil::updateGPSMap(File file)
 {
-  int bytesWritten = 0;
-  
   if (!file)
-    return bytesWritten;
+    return;
 
-  Serial.println("updateGPSMap() BEGIN");
+  uint32_t t0 = millis();
   
   // read from the file until there's nothing else in it:
+  int numPoints = 0;
   int numPointsOnscreen = 0;
   while (file.available()) 
   {
     String line = file.readStringUntil(' ');
 
-    Serial.println(line);
-
-    bytesWritten++;
+//    Serial.println(line);
     
     position pos = GpsUtil::stringToPosition(line);
     
-    String latStr = String(pos.lat, GpsUtil::precisionRead());
-    String lngStr = String(pos.lng, GpsUtil::precisionRead());
+    String latStr = String(pos.lat, GpsUtil::precision());
+    String lngStr = String(pos.lng, GpsUtil::precision());
     String posStr = "(" + latStr + ", " + lngStr + ")";
-    Serial.println("READ GPS POSITION FROM DISC: " + posStr);
+//    Serial.println("READ GPS POSITION FROM DISC: " + posStr);
 //
 //    // only draw visible locations (gps coordinates that translate onto visible screen coords)
 //    if (positionIsOnScreen(pos))
@@ -196,15 +182,15 @@ int ScreenUtil::updateGPSMap(File file)
 //      println(10, 45 + numPointsOnscreen*2*7, 2, HX8357_WHITE, posStr);
 //      numPointsOnscreen++;
 //    }
+    numPoints++;
   }
   
   // close the file
   file.close();
 
   Serial.println();
-  Serial.println("updateGPSMap() END");
-
-  return bytesWritten;
+  Serial.println("parsed gps track in " + String(millis() - t0) + "ms");
+  showMsg("read " + String(numPoints) + " locations in " + String(millis() - t0) + "ms");
 }
 
 bool ScreenUtil::positionIsOnScreen(position pos)

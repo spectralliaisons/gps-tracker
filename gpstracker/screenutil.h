@@ -35,7 +35,7 @@ class ScreenUtil
     void updateBatteryDisplay(String displayCharge, bool isLow);
     void println(int x, int y, int size, int color, String str, int bg=BG); // HX8357_BLACK // bg = HX8357_BLUE for debugging to see "text field" area
     void updateGPSText(Adafruit_GPS gps);
-    int updateGPSMap(File file);
+    void updateGPSMap(File file);
     void updateSDStatus(File file);
    
    private:
@@ -54,7 +54,6 @@ class ScreenUtil
     String _lastMsg;
     String _lastDisplayedCharge;
     String _lastDisplayedPosition;
-    int _zoom;
     
     bool positionIsOnScreen(position pos);
     point positionToPoint(position pos);

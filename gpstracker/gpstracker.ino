@@ -24,8 +24,6 @@ GpsUtil *gps;
 // whater display we are using
 ScreenUtil *screen;
 
-bool done = false;
-
 /**
  * Initialize
  */
@@ -66,9 +64,8 @@ void loop()
   // try to find it again (e.g. if user inserts)
   if (!gpsTrack)
     SDUtil::init();
-  
-  if (!done)
-    done = screen->updateGPSMap(gpsTrack) > 0;
+
+  screen->updateGPSMap(gpsTrack);
   
   screen->updateGPSText(gps->getGPS());
 

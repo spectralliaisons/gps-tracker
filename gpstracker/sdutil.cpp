@@ -12,7 +12,7 @@ String SDUtil::init()
   if (!SD.begin(SD_CHIP)) 
     return "ERROR: SD CARD FAILED OR NOT PRESENT. ";
   
-  return "";
+  return "SD initialized.";
 }
 
 void SDUtil::remove(String file)
