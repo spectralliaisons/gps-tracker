@@ -4,12 +4,6 @@
 #include <SD.h>
 #include <Adafruit_GPS.h>
 
-struct position 
-{
-  float lat;
-  float lng;
-};
-
 class GpsUtil
 {
   public:
@@ -17,9 +11,7 @@ class GpsUtil
   	bool update();
   	Adafruit_GPS getGPS();
     File getFileFromDisc();
-    static position stringToPosition(String str);
     static int precision();
-    static float getFeetBetweenPositions(position p1, position p2);
   private:
   	int _refreshMs;
     int _start;

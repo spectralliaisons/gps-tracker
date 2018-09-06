@@ -169,7 +169,7 @@ void ScreenUtil::updateGPSMap(File file)
 
 //    Serial.println(line);
     
-    position pos = GpsUtil::stringToPosition(line);
+    position pos = Pythagoras::stringToPosition(line);
     
     String latStr = String(pos.lat, GpsUtil::precision());
     String lngStr = String(pos.lng, GpsUtil::precision());

@@ -2,6 +2,7 @@
 #define ScreenUtil_h
 
 #include "Arduino.h"
+#include "pythagoras.h"
 
 // TFT Touchscreen
 #include "Adafruit_GFX.h"
