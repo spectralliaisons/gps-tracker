@@ -43,7 +43,7 @@ ScreenUtil::ScreenUtil(String initMsg)
 
 void ScreenUtil::showMsg(String msg)
 {
-  Serial.println("msg: " + msg + " VS lastmsg: " + _lastMsg + " = " + String(msg == _lastMsg));
+//  Serial.println("msg: " + msg + " VS lastmsg: " + _lastMsg + " = " + String(msg == _lastMsg));
   
   if (msg == _lastMsg)
     return;
@@ -71,8 +71,8 @@ void ScreenUtil::showMsg(String msg)
   _batteryBottomPos = _batteryTopPos + textHeightForSize(DEF_TEXT_SIZE);
 
   // force all to redraw based on new window rect
-//  _lastDisplayedCharge = "";
-//  _lastDisplayedPosition = "";
+  _lastDisplayedCharge = "";
+  _lastDisplayedPosition = "";
 }
 
 int ScreenUtil::textHeightForSize(int size)
@@ -85,16 +85,6 @@ int ScreenUtil::textWidthForSize(int size)
   return size * 6;
 }
 
-void ScreenUtil::updateBatteryDisplay(String displayCharge, bool isLow)
-{
-  // to save power, only redraw if changed
-  if (_lastDisplayedCharge != displayCharge)
-  {
-    println(_window.x, _batteryTopPos, DEF_TEXT_SIZE, isLow ? HX8357_RED : HX8357_GREEN, "[BATTERY] " + displayCharge + "%"); 
-    _lastDisplayedCharge = displayCharge;
-  }
-}
-
 void ScreenUtil::println(int x, int y, int size, int color, String str, int bg)
 {
   // clear bg for this text, assuming no line breaks!
@@ -104,6 +94,28 @@ void ScreenUtil::println(int x, int y, int size, int color, String str, int bg)
   tft.setTextSize(size);
   tft.setTextColor(color); 
   tft.println(str);
+}
+
+void ScreenUtil::updateSDStatus(File file)
+{
+  if (!file)
+  {
+    showMsg("ERROR: Could not load file from SD card");
+  }
+  else
+  {
+    showMsg("");
+  }
+}
+
+void ScreenUtil::updateBatteryDisplay(String displayCharge, bool isLow)
+{
+  // to save power, only redraw if changed
+  if (_lastDisplayedCharge != displayCharge)
+  {
+    println(_window.x, _batteryTopPos, DEF_TEXT_SIZE, isLow ? HX8357_RED : HX8357_GREEN, "[BATTERY] " + displayCharge + "%"); 
+    _lastDisplayedCharge = displayCharge;
+  }
 }
 
 void ScreenUtil::updateGPSText(Adafruit_GPS gps)
@@ -165,21 +177,18 @@ int ScreenUtil::updateGPSMap(File file)
   int numPointsOnscreen = 0;
   while (file.available()) 
   {
-    // read one byte at a time
-    // file:///Applications/Arduino.app/Contents/Java/reference/www.arduino.cc/en/Serial/Read.html
-    int line = file.read();
+    String line = file.readStringUntil(' ');
 
-    bytesWritten += Serial.write(line);
+    Serial.println(line);
+
+    bytesWritten++;
     
-//    position pos = GpsUtil::stringToPosition(line);
-//    position pos;
-//    pos.lat = 0;
-//    pos.lng = 0;
-//
-//    String latStr = String(pos.lat, 10);
-//    String lngStr = String(pos.lng, 10);
-//    String posStr = "(" + latStr + ", " + lngStr + ")";
-//    Serial.println("GPS POSITION FROM DISC: " + posStr);
+    position pos = GpsUtil::stringToPosition(line);
+    
+    String latStr = String(pos.lat, GpsUtil::precisionRead());
+    String lngStr = String(pos.lng, GpsUtil::precisionRead());
+    String posStr = "(" + latStr + ", " + lngStr + ")";
+    Serial.println("READ GPS POSITION FROM DISC: " + posStr);
 //
 //    // only draw visible locations (gps coordinates that translate onto visible screen coords)
 //    if (positionIsOnScreen(pos))
@@ -196,20 +205,6 @@ int ScreenUtil::updateGPSMap(File file)
   Serial.println("updateGPSMap() END");
 
   return bytesWritten;
-}
-
-void ScreenUtil::updateSDStatus(File file)
-{
-  if (!file)
-  {
-    Serial.println("lets say theres no card");
-    showMsg("ERROR: Could not load file from SD card");
-  }
-  else
-  {
-    Serial.println("lets say there is a card");
-    showMsg("SD OK");
-  }
 }
 
 bool ScreenUtil::positionIsOnScreen(position pos)

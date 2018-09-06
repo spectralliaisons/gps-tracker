@@ -6,6 +6,9 @@
 #define GPSSerial Serial1
 #define REFRESH_MS 2000
 
+#define PRECISION_READ 10
+#define PRECISION_WRITE 7
+
 #define LOG_GPS true
 #define LOG_NAME "GPSTEST.TXT" // "gpstrak.txt" // TODO: increment based on found files
 
@@ -48,6 +51,16 @@ GpsUtil::GpsUtil()
 Adafruit_GPS GpsUtil::getGPS()
 {
 	return GPS;
+}
+
+int GpsUtil::precisionRead()
+{
+  return PRECISION_READ;
+}
+
+int GpsUtil::precisionWrite()
+{
+  return PRECISION_WRITE;
 }
 
 File GpsUtil::getFileFromDisc()
@@ -120,8 +133,8 @@ bool GpsUtil::update()
 // log curr pos to SD card
 void GpsUtil::logCurrentPosition()
 {
-  String latStr = String(GPS.latitudeDegrees, 10);
-  String lngStr = String(GPS.longitudeDegrees, 10);
+  String latStr = String(GPS.latitudeDegrees, GpsUtil::precisionWrite());
+  String lngStr = String(GPS.longitudeDegrees, GpsUtil::precisionWrite());
   String posLn = " " + latStr + "," + lngStr + ",0"; // TODO: what's up with the ",0"?
   SDUtil::print(_currLog, posLn);
 }
@@ -129,11 +142,43 @@ void GpsUtil::logCurrentPosition()
 position GpsUtil::stringToPosition(String str)
 {
   int firstComma = str.indexOf(",");
-  int secondComma = str.indexOf(",", firstComma);
+  int secondComma = str.indexOf(",", firstComma+1);
+
+  String latStr = str.substring(0, firstComma);
+  String lngStr = str.substring(firstComma+1, secondComma);
+
+  Serial.println("#1S: " + latStr);
+  Serial.println("#2S: " + lngStr);
 
   position p;
-  p.lat = str.substring(0, firstComma).toFloat();
-  p.lng = str.substring(firstComma+1, secondComma).toFloat();
+  p.lat = latStr.toFloat();
+  p.lng = lngStr.toFloat();
+
+  Serial.println("#1F: " + String(p.lat, GpsUtil::precisionRead()));
+  Serial.println("#2F: " + String(p.lng, GpsUtil::precisionRead()));
+  
   return p;
+}
+
+float GpsUtil::getFeetBetweenPositions(position p1, position p2)
+{
+  https://stackoverflow.com/questions/1502590/calculate-distance-between-two-points-in-google-maps-v3
+//    var rad = function(x) {
+//    return x * Math.PI / 180;
+//  };
+//  
+//  var getDistance = function(p1, p2) {
+//    var R = 6378137; // Earth’s mean radius in meter
+//    var dLat = rad(p2.lat() - p1.lat());
+//    var dLong = rad(p2.lng() - p1.lng());
+//    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+//      Math.cos(rad(p1.lat())) * Math.cos(rad(p2.lat())) *
+//      Math.sin(dLong / 2) * Math.sin(dLong / 2);
+//    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+//    var d = R * c;
+//    return d; // returns the distance in meter
+//  };
+
+return 0.0;
 }
 
