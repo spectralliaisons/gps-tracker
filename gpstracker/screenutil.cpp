@@ -12,38 +12,77 @@
 #define BACKLIGHT_PIN 12 // analogWrite(12,0); // analogWrite(12,255);
 #define BACKLIGHT_LEVEL 10
 
-#define NONE "??";
+#define NONE "??"
 
-#define DEF_ZOOM 10;
+#define DEF_ZOOM 10
+
+#define DEF_TEXT_SIZE 2
+#define TEXT_PAD_Y 5
+//#define BORDER_WIDTH 2
 
 // Use hardware SPI and the above for CS/DC
 Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
 
 bool toggle = true;
 
-ScreenUtil::ScreenUtil()
+ScreenUtil::ScreenUtil(String initMsg)
 {
 	// initialize TFT screen
   tft.begin(HX8357D);
   tft.setRotation(1);
-  tft.fillScreen(HX8357_BLACK);
+  tft.fillScreen(BG);
 
   analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL);
 
-  _lastDisplayedCharge = NONE;
-  _lastDisplayedPosition = NONE;
-
   _zoom = DEF_ZOOM;
+  _batteryBottomPos = -999;
+  _lastMsg = "";
+
+  showMsg(initMsg);
 }
 
-int ScreenUtil::width()
+void ScreenUtil::showMsg(String msg)
 {
-  return tft.width();
+  Serial.println("msg: " + msg + " VS lastmsg: " + _lastMsg + " = " + String(msg == _lastMsg));
+  
+  if (msg == _lastMsg)
+    return;
+
+  _lastMsg = msg;
+  
+  // clear screen
+//  tft.fillScreen(BG);
+  
+  if (msg.length())
+  {
+    println(0, 0, DEF_TEXT_SIZE, HX8357_WHITE, msg, HX8357_RED);
+
+    // make way for the message
+    _window.y = textHeightForSize(DEF_TEXT_SIZE);
+  }
+  else
+    _window.y = 0;
+  
+  _window.x = 0;
+  _window.width = tft.width();
+  _window.height = tft.height() - _window.y;
+
+  _batteryTopPos = _window.y + TEXT_PAD_Y;
+  _batteryBottomPos = _batteryTopPos + textHeightForSize(DEF_TEXT_SIZE);
+
+  // force all to redraw based on new window rect
+//  _lastDisplayedCharge = "";
+//  _lastDisplayedPosition = "";
 }
 
-int ScreenUtil::height()
+int ScreenUtil::textHeightForSize(int size)
 {
-  return tft.height();
+  return size * 7;
+}
+
+int ScreenUtil::textWidthForSize(int size)
+{
+  return size * 6;
 }
 
 void ScreenUtil::updateBatteryDisplay(String displayCharge, bool isLow)
@@ -51,14 +90,16 @@ void ScreenUtil::updateBatteryDisplay(String displayCharge, bool isLow)
   // to save power, only redraw if changed
   if (_lastDisplayedCharge != displayCharge)
   {
-    println(10, 15, 2, isLow ? HX8357_RED : HX8357_GREEN, "[BATTERY] " + displayCharge + "%"); 
+    println(_window.x, _batteryTopPos, DEF_TEXT_SIZE, isLow ? HX8357_RED : HX8357_GREEN, "[BATTERY] " + displayCharge + "%"); 
     _lastDisplayedCharge = displayCharge;
   }
 }
 
-void ScreenUtil::println(int x, int y, int size, int color, String str)
+void ScreenUtil::println(int x, int y, int size, int color, String str, int bg)
 {
-  tft.fillRect(x, y, width()-4-x, size*7, HX8357_BLACK); // HX8357_BLUE for debugging to see "text field" area
+  // clear bg for this text, assuming no line breaks!
+  int width = _window.width - _window.x + x; // str.length() * textWidthForSize(size)
+  tft.fillRect(x, y, width, textHeightForSize(size), bg);
   tft.setCursor(x, y);
   tft.setTextSize(size);
   tft.setTextColor(color); 
@@ -67,8 +108,8 @@ void ScreenUtil::println(int x, int y, int size, int color, String str)
 
 void ScreenUtil::updateGPSText(Adafruit_GPS gps)
 {
-  int left = 10;
-  int top = 45;
+  int left = _window.x;
+  int top = _batteryBottomPos + TEXT_PAD_Y; // below battery text area
 
   String lat, lng, alt, sat;
 
@@ -88,26 +129,25 @@ void ScreenUtil::updateGPSText(Adafruit_GPS gps)
   {
     _lastDisplayedPosition = currPos;
     
-    println(left, top, 2, HX8357_WHITE, "lat: " + lat);
-    println(left, top*2, 2, HX8357_WHITE, "lng: " + lng);
-    println(left, top*3, 2, HX8357_WHITE, "altitude (feet): " + alt);
-    println(left, top*4, 2, HX8357_WHITE, "satellites: " + sat);
+    println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*0, DEF_TEXT_SIZE, HX8357_WHITE, "lat: " + lat);
+    println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*1, DEF_TEXT_SIZE, HX8357_WHITE, "lng: " + lng);
+    println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*2, DEF_TEXT_SIZE, HX8357_WHITE, "altitude (feet): " + alt);
+    println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*3, DEF_TEXT_SIZE, HX8357_WHITE, "satellites: " + sat);
     
-    drawBorder(gps.fix ? HX8357_BLACK : HX8357_RED);
+//    drawBorder(gps.fix ? BG : HX8357_RED);
   }
 }
 
-void ScreenUtil::drawBorder(int color)
-{
-  tft.drawFastHLine(0, 0, width(), color);
-  tft.drawFastHLine(0, height()-1, width(), color);
-  tft.drawFastVLine(0, 0, height(), color);
-  tft.drawFastVLine(width()-1, 0, height(), color);
-  tft.drawFastHLine(1, 1, width()-2, color);
-  tft.drawFastHLine(1, height()-2, width(), color);
-  tft.drawFastVLine(1, 1, height()-2, color);
-  tft.drawFastVLine(width()-2, 1, height()-2, color);
-}
+//void ScreenUtil::drawBorder(int color)
+//{
+//  for (int i = 0; i < BORDER_WIDTH; i++)
+//  {
+//    tft.drawFastHLine(i, i, width()-(i*2), color);
+//    tft.drawFastHLine(i, height()-(i+1), width(), color);
+//    tft.drawFastVLine(i, i, height()-(i*2), color);
+//    tft.drawFastVLine(width()-(i+1), i, height()-(i+1), color);
+//  }
+//}
 
 // DISPLAY GPS COORDS
 
@@ -152,23 +192,38 @@ int ScreenUtil::updateGPSMap(File file)
   // close the file
   file.close();
 
+  Serial.println();
   Serial.println("updateGPSMap() END");
 
   return bytesWritten;
 }
 
+void ScreenUtil::updateSDStatus(File file)
+{
+  if (!file)
+  {
+    Serial.println("lets say theres no card");
+    showMsg("ERROR: Could not load file from SD card");
+  }
+  else
+  {
+    Serial.println("lets say there is a card");
+    showMsg("SD OK");
+  }
+}
+
 bool ScreenUtil::positionIsOnScreen(position pos)
 {
   point p = positionToPoint(pos);
-  return (0 <= p.x <= width()) && (0 <= p.y <= height());
+  return (_window.x <= p.x <= _window.width) && (_window.y <= p.y <= _window.height);
 }
 
 point ScreenUtil::positionToPoint(position pos)
 {
   // use _zoom
   point p;
-  p.x = width() / 2;
-  p.y = height() / 2;
+  p.x = _window.width / 2;
+  p.y = _window.height / 2;
   return p;
 }
 

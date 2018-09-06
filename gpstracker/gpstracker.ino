@@ -33,16 +33,15 @@ void setup()
 {  
   // initialize console logging & wait for serial port to connect.
   Serial.begin(115200);
-  while (!Serial) {;} // only uncomment this if you're connected via USB or else board reset will not work!
-  Serial.println("Serial initialized.");
+//  while (!Serial) {;} // only uncomment this if you're connected via USB or else board reset will not work!
 
-  SDUtil::init();
-
-  battery = new Battery(VBATPIN);
-
-  screen = new ScreenUtil();
+  String errMsg = SDUtil::init();
   
-  gps = new GpsUtil();
+  screen = new ScreenUtil(errMsg);
+  
+  battery = new Battery(VBATPIN);
+  
+  gps = new GpsUtil(); 
 }
 
 /**
@@ -50,7 +49,6 @@ void setup()
  */
 void loop() 
 {
-  // e.g. debugging initialization
   if (!gps || !screen || !battery)
     return;
    
@@ -61,12 +59,18 @@ void loop()
   // ------------------------------
   // -- handle GPS location info if we have it
   // --
-  if (!done)
-  {
-    done = screen->updateGPSMap(gps->getFileFromDisc()) > 0;
-  }
   
-//  screen->updateGPSText(gps->getGPS());
+  // try to get track from sd card or show error
+  File gpsTrack = gps->getFileFromDisc();
+  screen->updateSDStatus(gpsTrack);
+  // try to find it again (e.g. if user inserts)
+  if (!gpsTrack)
+    SDUtil::init();
+  
+  if (!done)
+    done = screen->updateGPSMap(gpsTrack) > 0;
+  
+  screen->updateGPSText(gps->getGPS());
 
   // ------------------------------
   // -- refresh battery display

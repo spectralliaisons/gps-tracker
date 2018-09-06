@@ -6,19 +6,13 @@
 
 #define SD_CHIP 4
 
-void SDUtil::init()
+String SDUtil::init()
 {
-  Serial.print("Initializing SD card...");
-
   // see if the card is present and can be initialized:
   if (!SD.begin(SD_CHIP)) 
-  {
-    Serial.println("Card failed, or not present!");
-    // don't do anything more:
-    return;
-  }
+    return "ERROR: SD CARD FAILED OR NOT PRESENT. ";
   
-  Serial.println("card initialized!");
+  return "";
 }
 
 void SDUtil::remove(String file)

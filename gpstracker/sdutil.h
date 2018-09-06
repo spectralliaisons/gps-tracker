@@ -6,7 +6,7 @@
 class SDUtil
 {
   public:
-    static void init();
+    static String init();
     static void remove(String file);
     static void print(String file, String dataString, bool newLine=false);
 };

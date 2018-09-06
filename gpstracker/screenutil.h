@@ -11,6 +11,7 @@
 #include <Adafruit_GPS.h>
 #include "gpsutil.h"
 
+#define BG HX8357_BLACK
 #define WHITE HX8357_WHITE
 
 struct point
@@ -19,21 +20,42 @@ struct point
   int y;
 };
 
+struct rect
+{
+  int x;
+  int y;
+  int width;
+  int height;
+};
+
 class ScreenUtil
 {
   public:
-    ScreenUtil();
+    ScreenUtil(String initMsg);
     void updateBatteryDisplay(String displayCharge, bool isLow);
-    void println(int x, int y, int size, int color, String str);
+    void println(int x, int y, int size, int color, String str, int bg=BG); // HX8357_BLACK // bg = HX8357_BLUE for debugging to see "text field" area
     void updateGPSText(Adafruit_GPS gps);
     int updateGPSMap(File file);
+    void updateSDStatus(File file);
+   
    private:
-    int width();
-    int height();
-    void drawBorder(int color);
+    rect _window;
+
+    int _batteryTopPos;
+    int _batteryBottomPos;
+    
+    int textHeightForSize(int size);
+    int textWidthForSize(int size);
+    
+    void showMsg(String msg);
+    
+//    void drawBorder(int color);
+
+    String _lastMsg;
     String _lastDisplayedCharge;
     String _lastDisplayedPosition;
     int _zoom;
+    
     bool positionIsOnScreen(position pos);
     point positionToPoint(position pos);
 };
