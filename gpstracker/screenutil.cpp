@@ -317,27 +317,55 @@ geoloc ScreenUtil::findCurrGeoloc(String filePath)
  */
 void ScreenUtil::drawDistancesFrom(geoloc currGeoloc)
 {
-//  Serial.println("width " + String(_window.width) + " height " + String(_window.height));
   float maxFeet = pixelsToFeet(_window.width / 2);
-//  Serial.println("maxFeet " + String(maxFeet));
-  float feetPerRing = 500.0;
+  float feetPerRing = 250.0;
   float numRings = maxFeet / feetPerRing;
-//  Serial.println("numRings " + String(numRings));
 
   for (int i = 1; i < numRings; i++)
   {
     float feet = i * feetPerRing;
     float r = feetToPixels(feet);
-//    Serial.println("feet " + String(feet) + "r " + String(r));
     tft.drawCircle(_window.cx, _window.cy, r, HX8357_WHITE);
+
+    // legend
+    if (i % 2 == 0)
+    {
+      tft.setCursor(_window.cx + feetToPixels(feet) + 1, _window.cy - 10);
+      tft.setTextSize(1);
+      tft.setTextColor(HX8357_WHITE); 
+      tft.println(String(round(feet)) + "ft"); 
+    }
   }
 
-  // legend
-  tft.drawFastHLine(_window.cx - feetToPixels(feetPerRing), _window.cy, feetToPixels(feetPerRing), HX8357_WHITE);
-  tft.setCursor(_window.cx - feetToPixels(feetPerRing) + 10, _window.cy - 10);
-  tft.setTextSize(1);
-  tft.setTextColor(HX8357_WHITE); 
-  tft.println(String(round(feetPerRing)) + "ft");
+  // octants
+  int numRays = 32;
+  float angle = 2 * PI / numRays; // number of dividing lines in 180-deg
+  int lineLength = _window.width;
+  for (int i = 0; i < numRays; i++)
+  {
+    // find this rotation on the unit circle
+    float angle1 = i * angle;
+    point vec0 = {1, 0}; 
+    // (1, 0) on the unit circle is a horizontal line
+    point vec1 = Pythagoras::rotate(vec0, angle1); // rotate to a new point on the unit circle
+
+    // transform the point into window coordinates
+    point p1;
+    p1.x = _window.cx + vec1.x * lineLength;
+    p1.y = _window.cy + vec1.y * lineLength;
+
+    // now find corresponding 180-deg rotated point
+    float angle2 = i * angle + PI;
+    point vec2 = Pythagoras::rotate(vec0, angle2);
+    point p2;
+    p2.x = _window.cx + vec2.x * lineLength;
+    p2.y = _window.cy + vec2.y * lineLength;
+    
+    tft.drawLine(p1.x, p1.y, p2.x, p2.y, HX8357_WHITE);
+  }
+
+  // clear center
+  tft.fillCircle(_window.cx, _window.cy, feetToPixels(feetPerRing)-1, BG);
 }
 
 bool ScreenUtil::drawGeoloc(geoloc g0, geoloc g1, geoloc currGeoloc)

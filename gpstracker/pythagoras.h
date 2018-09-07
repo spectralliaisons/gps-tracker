@@ -5,8 +5,8 @@
 
 struct point
 {
-  int x;
-  int y;
+  float x;
+  float y;
 };
 
 struct geoloc 

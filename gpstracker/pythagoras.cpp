@@ -55,6 +55,9 @@ float Pythagoras::getFeetBetweenGeolocs(geoloc p1, geoloc p2)
   return feet;
 }
 
+/**
+ * Rotate a point on the unit circle
+ */
 point Pythagoras::rotate(point p, float r)
 {
   point rotated;
