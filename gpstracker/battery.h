@@ -9,6 +9,7 @@ class Battery
     Battery(int pin);
     String displayCharge();
     bool isLow();
+    bool update();
   private:
     float _percentCharge;
     int _pin;

@@ -49,33 +49,38 @@ void loop()
 {
   if (!gps || !screen || !battery)
     return;
+
+  // handle current touches
+  touch_state touchState = screen->updateTouches();
+
+  // maybe update battery display
+  if (battery->update() || touchState == TouchState_off)
+  {
+    // refresh battery display
+    String displayCharge = battery->displayCharge();
+    
+    // after analog read of battery pin, we must set it back to an input pin for the TFT display
+    // https://forums.adafruit.com/viewtopic.php?f=57&t=139616&p=690795&hilit=TFT+analogRead#p690795 
+    pinMode(VBATPIN, INPUT_PULLUP);
+    
+    screen->updateBatteryDisplay(displayCharge, battery->isLow());
+  }
    
   // read GPS and see if it's update time
-  if (!gps->update())
-    return;
-
-  // ------------------------------
-  // -- handle GPS location info if we have it
-  // --
+  if (gps->update() || touchState == TouchState_on)
+  {
+    // handle GPS location info if we have it
   
-  // try to get track from sd card or show error
-  String gpsTrack = gps->getFilepath();
-  if (!screen->updateSDStatus(gpsTrack))
-    SDUtil::init(); // try to find it again (e.g. if user inserts)
-
-  screen->updateGPSText(gps->getGPS());
+    // try to get track from sd card or show error
+    String gpsTrack = gps->getFilepath();
+    if (!screen->updateSDStatus(gpsTrack))
+      SDUtil::init(); // try to find it again (e.g. if user inserts)
   
-  screen->updateGPSMap(gpsTrack);
-
-  // ------------------------------
-  // -- refresh battery display
-  // --
-  String displayCharge = battery->displayCharge();
+    // GPS text summary
+    screen->updateGPSText(gps->getGPS());
   
-  // after analog read of battery pin, we must set it back to an input pin for the TFT display
-  // https://forums.adafruit.com/viewtopic.php?f=57&t=139616&p=690795&hilit=TFT+analogRead#p690795 
-  pinMode(VBATPIN, INPUT_PULLUP);
-  
-  screen->updateBatteryDisplay(displayCharge, battery->isLow());
+    // GPS track display (map)
+    screen->updateGPSMap(gpsTrack); 
+  }
 }
 

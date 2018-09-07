@@ -10,7 +10,8 @@
 #define TFT_RST -1
 
 #define BACKLIGHT_PIN 12 // analogWrite(12,0); // analogWrite(12,255);
-#define BACKLIGHT_LEVEL 15 // 3
+#define BACKLIGHT_LEVEL_HI 15 // 3
+#define BACKLIGHT_LEVEL_LO 3
 
 #define NONE "??"
 
@@ -23,6 +24,15 @@
 
 // Use hardware SPI and the above for CS/DC
 Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
+Adafruit_STMPE610 touch = Adafruit_STMPE610(STMPE_CS);
+
+// This is calibration data for the raw touch data to the screen coordinates
+#define TS_MINX 3800
+#define TS_MAXX 100
+#define TS_MINY 100
+#define TS_MAXY 3750
+
+#define REQUIRE_TOUCH if (!_isTouched) return
 
 bool toggle = true;
 
@@ -33,12 +43,86 @@ ScreenUtil::ScreenUtil(String initMsg)
   tft.setRotation(1);
   tft.fillScreen(BG);
 
-  analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL);
+  // initialize touchscreen
+  if (!touch.begin())
+    while (1);
 
   _batteryBottomPos = -999;
   _lastMsg = "";
+  _isTouched = false;
+  _lastTouchState = true; // force first _isTouched to work
 
   showMsg(initMsg);
+}
+
+/**
+ * Handle touch state change.
+ */
+touch_state ScreenUtil::updateTouches()
+{
+  _isTouched = touch.touched();
+
+  touch_state touchState = TouchState_noChange;
+
+  // only respond to changes in touch state
+  if (_lastTouchState == _isTouched)
+    return touchState;
+
+  bool newlyTouched = false;
+  
+  if (!_isTouched)
+  {
+    analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_LO);
+    
+    // clear screen
+    tft.fillScreen(BG);
+
+    // force redraw battery
+    _lastDisplayedCharge = "";
+
+    touchState = TouchState_off;
+  }
+  else
+  {
+    analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_HI);
+
+    _lastDisplayedPosition = "";
+    _lastMsg = "";
+  
+    uint16_t x, y;
+    uint8_t z;
+  
+    int counter = 0;
+    while (!touch.bufferEmpty()) {
+  //    Serial.print("sweet touch " + String(counter++) + " is at " + String(touch.bufferSize()));
+      
+      touch.readData(&x, &y, &z);
+      
+      // Scale from ~0->4000 to tft.width using the calibration #'s
+      point p;
+      p.x = map(x, TS_MINX, TS_MAXX, tft.width(), 0);
+      p.y = map(y, TS_MINY, TS_MAXY, 0, tft.height());
+      
+  //    Serial.print("->("); 
+  //    Serial.print(p.x); Serial.print(", "); 
+  //    Serial.print(p.y); Serial.print(", "); 
+  //    Serial.print(z);
+  //    Serial.println(")");
+  
+  //    geoloc g = pointToGeoloc(p);
+  
+      String msg = "touched at: " + String(p.x) + ", " + String(p.y);
+      
+  //    showMsg(msg);
+    }
+    touch.writeRegister8(STMPE_INT_STA, 0xFF); // reset all ints 
+
+    touchState = TouchState_on;
+  }
+
+  _lastTouchState = _isTouched;
+
+  return touchState;
 }
 
 void ScreenUtil::showMsg(String msg)
@@ -117,6 +201,8 @@ void ScreenUtil::updateBatteryDisplay(String displayCharge, bool isLow)
 
 void ScreenUtil::updateGPSText(Adafruit_GPS gps)
 {
+  REQUIRE_TOUCH;
+  
   int left = _window.x;
   int top = _batteryBottomPos + TEXT_PAD_Y; // below battery text area
 
@@ -162,6 +248,8 @@ void ScreenUtil::updateGPSText(Adafruit_GPS gps)
 
 void ScreenUtil::updateGPSMap(String filePath)
 {
+  REQUIRE_TOUCH;
+  
   File file = SD.open(filePath);
   
   if (!file)
@@ -229,18 +317,18 @@ geoloc ScreenUtil::findCurrGeoloc(String filePath)
  */
 void ScreenUtil::drawDistancesFrom(geoloc currGeoloc)
 {
-  Serial.println("width " + String(_window.width) + " height " + String(_window.height));
+//  Serial.println("width " + String(_window.width) + " height " + String(_window.height));
   float maxFeet = pixelsToFeet(_window.width / 2);
-  Serial.println("maxFeet " + String(maxFeet));
+//  Serial.println("maxFeet " + String(maxFeet));
   float feetPerRing = 500.0;
   float numRings = maxFeet / feetPerRing;
-  Serial.println("numRings " + String(numRings));
+//  Serial.println("numRings " + String(numRings));
 
   for (int i = 1; i < numRings; i++)
   {
     float feet = i * feetPerRing;
     float r = feetToPixels(feet);
-    Serial.println("feet " + String(feet) + "r " + String(r));
+//    Serial.println("feet " + String(feet) + "r " + String(r));
     tft.drawCircle(_window.cx, _window.cy, r, HX8357_WHITE);
   }
 
@@ -313,5 +401,14 @@ point ScreenUtil::geolocToPoint(geoloc pos, geoloc centerPos)
   p.y = _window.cy + d * cos(r);
   
   return p;
+}
+
+geoloc ScreenUtil::pointToGeoloc(point pt)
+{
+    geoloc g;
+    g.lat = 1/0; // TODO
+    g.lng = 1/0;
+    
+    return g;
 }
 

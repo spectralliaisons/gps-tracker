@@ -4,7 +4,7 @@
 #include "sdutil.h"
 
 #define GPSSerial Serial1
-#define REFRESH_MS 7000 // 2000
+#define REFRESH_MS 2000
 
 #define LOG_GPS true
 #define LOG_NAME "GPSTEST.TXT" // "gpstrak.txt" // TODO: increment based on found files
