@@ -184,7 +184,7 @@ bool ScreenUtil::updateSDStatus(String filePath)
   }
   else
   {
-    showMsg("");
+//    showMsg("");
     return true;
   }
 }
