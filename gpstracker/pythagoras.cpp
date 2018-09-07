@@ -18,7 +18,7 @@ float Pythagoras::scale(float x0, float x1, float y0, float y1, float x2)
 	return fmax(y0, fmin(y1, (( x2 - x0 ) / ( x1 - x0 )) * ( y1 - y0 ) + y0));
 }
 
-position Pythagoras::stringToPosition(String str)
+geoloc Pythagoras::stringToGeoloc(String str)
 {
   int firstComma = str.indexOf(",");
   int secondComma = str.indexOf(",", firstComma+1);
@@ -29,7 +29,7 @@ position Pythagoras::stringToPosition(String str)
 //  Serial.println("#1S: " + latStr);
 //  Serial.println("#2S: " + lngStr);
 
-  position p;
+  geoloc p;
   p.lat = latStr.toFloat();
   p.lng = lngStr.toFloat();
 
@@ -42,7 +42,7 @@ position Pythagoras::stringToPosition(String str)
 /**
  * https://stackoverflow.com/questions/1502590/calculate-distance-between-two-points-in-google-maps-v3
  */
-float Pythagoras::getFeetBetweenPositions(position p1, position p2)
+float Pythagoras::getFeetBetweenGeolocs(geoloc p1, geoloc p2)
 {
   int R = 6378137; // Earth’s mean radius in meter
   float dLat = degToRad(p2.lat - p1.lat);
@@ -54,4 +54,13 @@ float Pythagoras::getFeetBetweenPositions(position p1, position p2)
   
   return feet;
 }
+
+point Pythagoras::rotate(point p, float r)
+{
+  point rotated;
+  rotated.x = p.x * cos(r) - p.y * sin(r);
+  rotated.y = p.x * sin(r) + p.y * cos(r);
+  return rotated;
+}
+
 

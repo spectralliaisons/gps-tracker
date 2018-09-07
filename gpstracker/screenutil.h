@@ -15,18 +15,14 @@
 #define BG HX8357_BLACK
 #define WHITE HX8357_WHITE
 
-struct point
-{
-  int x;
-  int y;
-};
-
 struct rect
 {
   int x;
   int y;
   int width;
   int height;
+  int cx;
+  int cy;
 };
 
 class ScreenUtil
@@ -36,8 +32,8 @@ class ScreenUtil
     void updateBatteryDisplay(String displayCharge, bool isLow);
     void println(int x, int y, int size, int color, String str, int bg=BG); // HX8357_BLACK // bg = HX8357_BLUE for debugging to see "text field" area
     void updateGPSText(Adafruit_GPS gps);
-    void updateGPSMap(File file);
-    void updateSDStatus(File file);
+    void updateGPSMap(String filePath);
+    bool updateSDStatus(String filePath);
    
    private:
     rect _window;
@@ -55,9 +51,15 @@ class ScreenUtil
     String _lastMsg;
     String _lastDisplayedCharge;
     String _lastDisplayedPosition;
-    
-    bool positionIsOnScreen(position pos);
-    point positionToPoint(position pos);
+
+    geoloc findCurrGeoloc(String filePath);
+    void drawDistancesFrom(geoloc currGeoloc);
+    bool drawGeoloc(geoloc g0, geoloc g1, geoloc currGeoloc);
+    bool pointIsOnscreen(point p);
+    point geolocToPoint(geoloc pos, geoloc centerPos);
+
+    float feetToPixels(float ft);
+    float pixelsToFeet(float px);
 };
 
 #endif

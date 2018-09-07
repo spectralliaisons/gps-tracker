@@ -10,11 +10,12 @@
 #define TFT_RST -1
 
 #define BACKLIGHT_PIN 12 // analogWrite(12,0); // analogWrite(12,255);
-#define BACKLIGHT_LEVEL 10
+#define BACKLIGHT_LEVEL 15 // 3
 
 #define NONE "??"
 
-#define DEF_ZOOM 10
+#define FEET_TO_PIXELS 0.1 // 0.05 zoom TODO: make editable
+#define FEET_PER_MILE 5280
 
 #define DEF_TEXT_SIZE 2
 #define TEXT_PAD_Y 5
@@ -52,10 +53,12 @@ void ScreenUtil::showMsg(String msg)
   println(0, 0, DEF_TEXT_SIZE, HX8357_WHITE, msg, HX8357_RED);
 
   // make way for the message
-  _window.y = textHeightForSize(DEF_TEXT_SIZE);
   _window.x = 0;
+  _window.y = textHeightForSize(DEF_TEXT_SIZE);
   _window.width = tft.width();
   _window.height = tft.height() - _window.y;
+  _window.cx = (_window.width)/2 + _window.x;
+  _window.cy = (_window.height)/2 + _window.y;
 
   _batteryTopPos = _window.y + TEXT_PAD_Y;
   _batteryBottomPos = _batteryTopPos + textHeightForSize(DEF_TEXT_SIZE);
@@ -86,15 +89,19 @@ void ScreenUtil::println(int x, int y, int size, int color, String str, int bg)
   tft.println(str);
 }
 
-void ScreenUtil::updateSDStatus(File file)
+bool ScreenUtil::updateSDStatus(String filePath)
 {
+  File file = SD.open(filePath);
+  
   if (!file)
   {
     showMsg("ERROR: Could not load file from SD card");
+    return false;
   }
   else
   {
     showMsg("");
+    return true;
   }
 }
 
@@ -153,58 +160,158 @@ void ScreenUtil::updateGPSText(Adafruit_GPS gps)
 
 // DISPLAY GPS COORDS
 
-void ScreenUtil::updateGPSMap(File file)
+void ScreenUtil::updateGPSMap(String filePath)
 {
+  File file = SD.open(filePath);
+  
   if (!file)
     return;
 
+  // clear screen where map appears
+//  tft.fillRect(_window.x, _window.y, _window.width, _window.height, BG);
+
   uint32_t t0 = millis();
   
-  // read from the file until there's nothing else in it:
   int numPoints = 0;
   int numPointsOnscreen = 0;
+
+  // get curr location (last on file)
+  geoloc currGeoloc = findCurrGeoloc(filePath);
+
+  drawDistancesFrom(currGeoloc);
+
+  // geoloc one-back (when parsing)
+  geoloc g1;
+  g1.lat = 1/0; // stupid
+  g1.lng = 1/0;
+
+  // now go through again so we can compare all positions to curr pos for relative placement
+  file = SD.open(filePath);
   while (file.available()) 
   {
     String line = file.readStringUntil(' ');
 
-//    Serial.println(line);
+    geoloc g0 = Pythagoras::stringToGeoloc(line);
+
+    if (drawGeoloc(g0, g1, currGeoloc))
+      numPointsOnscreen++;
+
+    g1.lat = g0.lat;
+    g1.lng = g0.lng;
     
-    position pos = Pythagoras::stringToPosition(line);
-    
-    String latStr = String(pos.lat, GpsUtil::precision());
-    String lngStr = String(pos.lng, GpsUtil::precision());
-    String posStr = "(" + latStr + ", " + lngStr + ")";
-//    Serial.println("READ GPS POSITION FROM DISC: " + posStr);
-//
-//    // only draw visible locations (gps coordinates that translate onto visible screen coords)
-//    if (positionIsOnScreen(pos))
-//    {
-//      println(10, 45 + numPointsOnscreen*2*7, 2, HX8357_WHITE, posStr);
-//      numPointsOnscreen++;
-//    }
     numPoints++;
   }
-  
-  // close the file
   file.close();
 
-  Serial.println();
-  Serial.println("parsed gps track in " + String(millis() - t0) + "ms");
-  showMsg("read " + String(numPoints) + " locations in " + String(millis() - t0) + "ms");
+//  Serial.println();
+//  Serial.println("parsed gps track in " + String(millis() - t0) + "ms");
+  showMsg("parsed " + String(numPointsOnscreen) + "/" + String(numPoints) + " locations in " + String(millis() - t0) + "ms");
 }
 
-bool ScreenUtil::positionIsOnScreen(position pos)
+geoloc ScreenUtil::findCurrGeoloc(String filePath)
 {
-  point p = positionToPoint(pos);
-  return (_window.x <= p.x <= _window.width) && (_window.y <= p.y <= _window.height);
+  File file = SD.open(filePath);
+  
+  String lastLine;
+  geoloc currGeoloc;
+  
+  while (file.available()) 
+  {
+    lastLine = file.readStringUntil(' '); 
+  }
+  file.close();
+  
+  return Pythagoras::stringToGeoloc(lastLine);
 }
 
-point ScreenUtil::positionToPoint(position pos)
+/**
+ * Concentric circles around curr loc to show distances from where you are
+ */
+void ScreenUtil::drawDistancesFrom(geoloc currGeoloc)
 {
-  // use _zoom
+  Serial.println("width " + String(_window.width) + " height " + String(_window.height));
+  float maxFeet = pixelsToFeet(_window.width / 2);
+  Serial.println("maxFeet " + String(maxFeet));
+  float feetPerRing = 500.0;
+  float numRings = maxFeet / feetPerRing;
+  Serial.println("numRings " + String(numRings));
+
+  for (int i = 1; i < numRings; i++)
+  {
+    float feet = i * feetPerRing;
+    float r = feetToPixels(feet);
+    Serial.println("feet " + String(feet) + "r " + String(r));
+    tft.drawCircle(_window.cx, _window.cy, r, HX8357_WHITE);
+  }
+
+  // legend
+  tft.drawFastHLine(_window.cx - feetToPixels(feetPerRing), _window.cy, feetToPixels(feetPerRing), HX8357_WHITE);
+  tft.setCursor(_window.cx - feetToPixels(feetPerRing) + 10, _window.cy - 10);
+  tft.setTextSize(1);
+  tft.setTextColor(HX8357_WHITE); 
+  tft.println(String(round(feetPerRing)) + "ft");
+}
+
+bool ScreenUtil::drawGeoloc(geoloc g0, geoloc g1, geoloc currGeoloc)
+{
+//    String latStr = String(pos.lat, GpsUtil::precision());
+//    String lngStr = String(pos.lng, GpsUtil::precision());
+//    String posStr = "(" + latStr + ", " + lngStr + ")";
+//    Serial.println("READ GPS POSITION FROM DISC: " + posStr);
+    
+    // only draw visible locations (gps coordinates that translate onto visible screen coords)
+    point p0 = geolocToPoint(g0, currGeoloc);
+
+    if (!pointIsOnscreen(p0))
+      return false;
+    else
+      tft.fillCircle(p0.x, p0.y, 2, HX8357_BLUE);
+
+    // assume we already drew a dot at this location because it was the last one we parsed!
+    point p1 = geolocToPoint(g1, currGeoloc);
+
+    if (pointIsOnscreen(p1))
+      tft.drawLine(p1.x, p1.y, p0.x, p0.y, HX8357_WHITE); 
+
+    return true;
+}
+
+bool ScreenUtil::pointIsOnscreen(point p)
+{
+  return (p.x >= _window.x && p.x <= _window.x + _window.width) && (p.y >= _window.y && p.y <= _window.y + _window.height);
+}
+
+float ScreenUtil::feetToPixels(float ft)
+{
+  return ft * FEET_TO_PIXELS;
+}
+
+float ScreenUtil::pixelsToFeet(float px)
+{
+  return px / FEET_TO_PIXELS;
+}
+
+/**
+ * Translate geolocation lng, lat to x, y s.t. the geolocation centerPos is at the center of the screen
+ */
+point ScreenUtil::geolocToPoint(geoloc pos, geoloc centerPos)
+{
+  // distance between these geopositions
+  float ft = Pythagoras::getFeetBetweenGeolocs(pos, centerPos);
+  float d = feetToPixels(ft);
+
+  // angle between these
+  float r = atan2(pos.lat - centerPos.lat, pos.lng - centerPos.lng);
+
+  // we need to rotate 90deg ccw
+  r += PI/2;
+
+//  Serial.println("positionToPoint ft " + String(ft) + " d " + String(d) + " r " + String(r) + " width " + String(_window.width) + " height " + String(_window.height) + " cx " + String(_window.cx) + " cy " + String(_window.cy));
+  
   point p;
-  p.x = _window.width / 2;
-  p.y = _window.height / 2;
+  p.x = _window.cx + d * sin(r);
+  p.y = _window.cy + d * cos(r);
+  
   return p;
 }
 

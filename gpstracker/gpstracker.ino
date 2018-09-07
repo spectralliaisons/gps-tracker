@@ -31,7 +31,7 @@ void setup()
 {  
   // initialize console logging & wait for serial port to connect.
   Serial.begin(115200);
-  while (!Serial) {;} // only uncomment this if you're connected via USB or else board reset will not work!
+//  while (!Serial) {;} // only uncomment this if you're connected via USB or else board reset will not work!
 
   String errMsg = SDUtil::init();
   
@@ -59,15 +59,13 @@ void loop()
   // --
   
   // try to get track from sd card or show error
-  File gpsTrack = gps->getFileFromDisc();
-  screen->updateSDStatus(gpsTrack);
-  // try to find it again (e.g. if user inserts)
-  if (!gpsTrack)
-    SDUtil::init();
+  String gpsTrack = gps->getFilepath();
+  if (!screen->updateSDStatus(gpsTrack))
+    SDUtil::init(); // try to find it again (e.g. if user inserts)
 
-  screen->updateGPSMap(gpsTrack);
-  
   screen->updateGPSText(gps->getGPS());
+  
+  screen->updateGPSMap(gpsTrack);
 
   // ------------------------------
   // -- refresh battery display

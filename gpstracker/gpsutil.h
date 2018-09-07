@@ -10,13 +10,13 @@ class GpsUtil
   	GpsUtil();
   	bool update();
   	Adafruit_GPS getGPS();
-    File getFileFromDisc();
+    String getFilepath();
     static int precision();
   private:
   	int _refreshMs;
     int _start;
     String _currLog;
-    void logCurrentPosition();
+    void logCurrentGeoloc();
 };
 
 #endif

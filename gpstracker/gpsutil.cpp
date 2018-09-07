@@ -4,7 +4,7 @@
 #include "sdutil.h"
 
 #define GPSSerial Serial1
-#define REFRESH_MS 2000
+#define REFRESH_MS 7000 // 2000
 
 #define LOG_GPS true
 #define LOG_NAME "GPSTEST.TXT" // "gpstrak.txt" // TODO: increment based on found files
@@ -55,9 +55,9 @@ int GpsUtil::precision()
   return 10;
 }
 
-File GpsUtil::getFileFromDisc()
+String GpsUtil::getFilepath()
 {
-  return SD.open(_currLog);
+  return _currLog;
 }
 
 // read GPS and return true if new sentence received
@@ -123,7 +123,7 @@ bool GpsUtil::update()
 }
 
 // log curr pos to SD card
-void GpsUtil::logCurrentPosition()
+void GpsUtil::logCurrentGeoloc()
 {
   String latStr = String(GPS.latitudeDegrees, GpsUtil::precision());
   String lngStr = String(GPS.longitudeDegrees, GpsUtil::precision());
