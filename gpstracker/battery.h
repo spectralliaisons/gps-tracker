@@ -2,6 +2,7 @@
 #define Battery_h
 
 #include "Arduino.h"
+#include "timer.h"
 
 class Battery
 {
@@ -11,6 +12,8 @@ class Battery
     bool isLow();
     bool update();
   private:
+  	Timer *_logTimer;
+  	Timer *_updateTimer;
     float _percentCharge;
     int _pin;
     int _start;

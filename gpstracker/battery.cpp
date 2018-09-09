@@ -12,10 +12,8 @@
 #define LOG_BATTERY true
 #define LOG_DELAY 60000//60000
 #define LOG_NAME "battery.txt"
-uint32_t logTimer = millis();
 
 #define UPDATE_DELAY 10000
-uint32_t updateTimer = millis();
 
 Battery::Battery(int pin)
 {
@@ -24,6 +22,10 @@ Battery::Battery(int pin)
 
   if (LOG_BATTERY)
     SDUtil::remove(LOG_NAME);
+
+  _logTimer = new Timer(LOG_DELAY);
+
+  _updateTimer = new Timer(UPDATE_DELAY);
 }
 
 /**
@@ -31,16 +33,7 @@ Battery::Battery(int pin)
  */
 bool Battery::update()
 {
-  if (updateTimer > millis()) updateTimer = millis();
-
-  if (millis() - updateTimer > UPDATE_DELAY)
-  {
-    updateTimer = millis();
-
-    return true;
-  }
-
-  return false;
+  return _updateTimer->update();
 }
 
 String Battery::displayCharge()
@@ -52,14 +45,8 @@ String Battery::displayCharge()
 
   if (LOG_BATTERY)
   {
-    // every once in a while log the battery life
-    // if millis() or timer wraps around, we'll just reset it
-    if (logTimer > millis()) logTimer = millis();
-
-    if (millis() - logTimer > LOG_DELAY)
+    if (_logTimer->update())
     {
-      logTimer = millis();
-
       // log voltage with timestamp
       String dataString = String(millis() - _start) + "," + String(v);
       SDUtil::print(LOG_NAME, dataString, true);

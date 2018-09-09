@@ -14,8 +14,6 @@
 // Connect to the GPS on the hardware port
 Adafruit_GPS GPS(&GPSSerial);
 
-uint32_t timer = millis();
-
 GpsUtil::GpsUtil()
 {
   if (LOG_GPS)
@@ -24,8 +22,6 @@ GpsUtil::GpsUtil()
     _currLog = LOG_NAME;
 //    SDUtil::remove(_currLog);
   }
-    
-	_refreshMs = REFRESH_MS;
 
 	// default NMEA GPS baud
 	GPS.begin(9600);
@@ -42,7 +38,7 @@ GpsUtil::GpsUtil()
 	// // Ask for firmware version
 	GPSSerial.println(PMTK_Q_RELEASE);
 
-  _start = millis();
+  _timer = new Timer(REFRESH_MS);
 }
 
 Adafruit_GPS GpsUtil::getGPS()
@@ -50,6 +46,10 @@ Adafruit_GPS GpsUtil::getGPS()
 	return GPS;
 }
 
+/**
+* Arduino floats only have 6 decimal precision, 
+* but let's just say 10 becasue my physical gps saves kml files w/ 10 decimals.
+*/
 int GpsUtil::precision()
 {
   return 10;
@@ -74,14 +74,8 @@ bool GpsUtil::update()
   
   	if (GPS.parse(GPS.lastNMEA()))
   	{
-  		// if millis() or timer wraps around, we'll just reset it
-  		if (timer > millis()) timer = millis();
-  
-  		// approximately every 2 seconds or so, print out the current stats
-  		if (millis() - timer > _refreshMs)
+  		if (_timer->update())
   		{
-  			timer = millis();
-
         if (LOG)
         {
 //          Serial.print("\nTime: ");

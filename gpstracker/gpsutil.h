@@ -3,6 +3,7 @@
 
 #include <SD.h>
 #include <Adafruit_GPS.h>
+#include "timer.h"
 
 class GpsUtil
 {
@@ -13,8 +14,7 @@ class GpsUtil
     String getFilepath();
     static int precision();
   private:
-  	int _refreshMs;
-    int _start;
+    Timer *_timer;
     String _currLog;
     void logCurrentGeoloc();
 };
