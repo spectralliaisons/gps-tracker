@@ -31,9 +31,7 @@ void setup()
 {  
   // initialize console logging & wait for serial port to connect.
   Serial.begin(115200);
-  while (!Serial) {;} // only uncomment this if you're connected via USB or else board reset will not work!
-
-  Serial.println("we have a serial connection!");
+//  while (!Serial) {;} // only uncomment this if you're connected via USB or else board reset will not work!
 
   String errMsg = SDUtil::init();
   
@@ -55,10 +53,8 @@ void loop()
   // handle current touches
   touch_state touchState = screen->updateTouches();
 
-  Serial.println("loop() " + String(millis()) + " touchState: " + String(touchState));
-
   // maybe update battery display
-  if (touchState == TouchState_off || battery->update())
+  if (battery->update() || touchState == TouchState_off)
   {
     // refresh battery display
     String displayCharge = battery->displayCharge();
@@ -71,7 +67,7 @@ void loop()
   }
    
   // read GPS and see if it's update time
-  if (touchState == TouchState_on || gps->update())
+  if (gps->update() || touchState == TouchState_on)
   {
     // handle GPS location info if we have it
   
@@ -87,3 +83,4 @@ void loop()
     screen->updateGPSMap(gpsTrack); 
   }
 }
+
