@@ -1,7 +1,10 @@
 # gpstracker
 
-## proof of concept up and running
-![an image examplar](./examples/proofofconcept.jpg)
+## proof of concept: print gps coordinates
+![an image examplar](./examples/proofofconcept1.jpg)
+
+## displaying the initial section of the Russian River East Fork from SD card
+![an image examplar](./examples/proofofconcept2.jpg)
 
 ## overview
 
