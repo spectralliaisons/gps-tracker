@@ -7,11 +7,13 @@
 // TFT Touchscreen
 #include "Adafruit_GFX.h"
 #include "Adafruit_HX8357.h"
-#include <Adafruit_STMPE610.h>
 
 // GPS
 #include <Adafruit_GPS.h>
 #include "gpsutil.h"
+
+// Menu handles user interaction
+#include "menu.h"
 
 #define BG HX8357_BLACK
 #define WHITE HX8357_WHITE
@@ -26,12 +28,6 @@ struct rect
   int cy;
 };
 
-typedef enum {
-  TouchState_noChange,
-  TouchState_on,
-  TouchState_off
-} touch_state;
-
 class ScreenUtil
 {
   public:
@@ -44,13 +40,12 @@ class ScreenUtil
     bool updateSDStatus(String filePath);
    
    private:
+    Menu *_menu;
+    
     rect _window;
 
     int _batteryTopPos;
     int _batteryBottomPos;
-
-    bool _isTouched;
-    bool _lastTouchState;
     
     int textHeightForSize(int size);
     int textWidthForSize(int size);
