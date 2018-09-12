@@ -7,10 +7,13 @@
 #define TS_MAXX 3500
 
 #define MIN_ZOOM 1
-#define MAX_ZOOM 8 // 10
+#define MAX_ZOOM 10
 
-#define MIN_FEET_TO_PIXELS 0.09 // 0.1 // 0.05
-#define MAX_FEET_TO_PIXELS 0.30
+// Zoomed all the way in
+#define MIN_FEET_TO_PIXELS 0.05
+
+// Zoomed all the way out
+#define MAX_FEET_TO_PIXELS 0.50
 
 // screen off of untouched for long enough
 #define DELAY_SCREEN_OFF 7000
@@ -100,7 +103,7 @@ bool Menu::isZoomUnchanged()
     touch.readData(&x, &y, &z);
     
     // remember, map returns int, so value is rounded into bins
-    _currZoom = map(x, TS_MINX, TS_MAXX, MIN_ZOOM, MAX_ZOOM);
+    _currZoom = map(x, TS_MINX, TS_MAXX, MAX_ZOOM, MIN_ZOOM);
 
      // only redraw if zoom changed
     if (_currZoom != _lastZoom)
