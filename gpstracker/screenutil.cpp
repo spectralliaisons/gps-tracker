@@ -15,7 +15,6 @@
 
 #define NONE "??"
 
-#define FEET_TO_PIXELS 0.1 // 0.05 zoom TODO: make editable
 #define FEET_PER_MILE 5280
 
 #define DEF_TEXT_SIZE 2
@@ -24,15 +23,8 @@
 
 // Use hardware SPI and the above for CS/DC
 Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
-Adafruit_STMPE610 touch = Adafruit_STMPE610(STMPE_CS);
 
-// This is calibration data for the raw touch data to the screen coordinates
-#define TS_MINX 3800
-#define TS_MAXX 100
-#define TS_MINY 100
-#define TS_MAXY 3750
-
-#define REQUIRE_TOUCH if (!_isTouched) return
+#define REQUIRE_TOUCH if (_menu && _menu->isTouched()) return
 
 bool toggle = true;
 
@@ -43,14 +35,10 @@ ScreenUtil::ScreenUtil(String initMsg)
   tft.setRotation(1);
   tft.fillScreen(BG);
 
-  // initialize touchscreen
-  if (!touch.begin())
-    while (1);
+  _menu = new Menu();
 
   _batteryBottomPos = -999;
   _lastMsg = "";
-  _isTouched = false;
-  _lastTouchState = true; // force first _isTouched to work
 
   showMsg(initMsg);
 }
@@ -58,71 +46,46 @@ ScreenUtil::ScreenUtil(String initMsg)
 /**
  * Handle touch state change.
  */
-touch_state ScreenUtil::updateTouches()
+menu_state ScreenUtil::getMenuState()
 {
-  _isTouched = touch.touched();
+  touch_state touchState = _menu->updateTouches();
 
-  touch_state touchState = TouchState_noChange;
+  menu_state state = MenuState_sleep;
 
-  // only respond to changes in touch state
-  if (_lastTouchState == _isTouched)
-    return touchState;
-
-  bool newlyTouched = false;
-  
-  if (!_isTouched)
+  switch (touchState)
   {
-    analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_LO);
+    case TouchState_noChange:
+//      Serial.println("ScreenUtil ==> MenuState_sleep");
+      state = MenuState_sleep;
+      break;
     
-    // clear screen
-    tft.fillScreen(BG);
+    case TouchState_off:
+      Serial.println("TouchState_off");
+//      analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_LO);
+//      
+//      // clear screen
+//      tft.fillScreen(BG);
+//
+//      // force redraw battery
+//      _lastDisplayedCharge = "";
+//
+//      Serial.println("ScreenUtil ==> MenuState_sleep");
+//      state = MenuState_sleep;
+      break;
 
-    // force redraw battery
-    _lastDisplayedCharge = "";
-
-    touchState = TouchState_off;
-  }
-  else
-  {
-    analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_HI);
-
-    _lastDisplayedPosition = "";
-    _lastMsg = "";
-  
-    uint16_t x, y;
-    uint8_t z;
-  
-    int counter = 0;
-    while (!touch.bufferEmpty()) {
-  //    Serial.print("sweet touch " + String(counter++) + " is at " + String(touch.bufferSize()));
-      
-      touch.readData(&x, &y, &z);
-      
-      // Scale from ~0->4000 to tft.width using the calibration #'s
-      point p;
-      p.x = map(x, TS_MINX, TS_MAXX, tft.width(), 0);
-      p.y = map(y, TS_MINY, TS_MAXY, 0, tft.height());
-      
-  //    Serial.print("->("); 
-  //    Serial.print(p.x); Serial.print(", "); 
-  //    Serial.print(p.y); Serial.print(", "); 
-  //    Serial.print(z);
-  //    Serial.println(")");
-  
-  //    geoloc g = pointToGeoloc(p);
-  
-      String msg = "touched at: " + String(p.x) + ", " + String(p.y);
-      
-  //    showMsg(msg);
-    }
-    touch.writeRegister8(STMPE_INT_STA, 0xFF); // reset all ints 
-
-    touchState = TouchState_on;
+    case TouchState_on:
+      Serial.println("TouchState_on");
+//      analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_HI);
+//
+//      _lastDisplayedPosition = "";
+//      _lastMsg = "";
+//
+//      Serial.println("ScreenUtil ==> MenuState_map");
+//      state = MenuState_map;
+      break;
   }
 
-  _lastTouchState = _isTouched;
-
-  return touchState;
+  return state;
 }
 
 void ScreenUtil::showMsg(String msg)
@@ -399,12 +362,12 @@ bool ScreenUtil::pointIsOnscreen(point p)
 
 float ScreenUtil::feetToPixels(float ft)
 {
-  return ft * FEET_TO_PIXELS;
+  return ft * _menu->getFeetToPixelsByZoom();
 }
 
 float ScreenUtil::pixelsToFeet(float px)
 {
-  return px / FEET_TO_PIXELS;
+  return px / _menu->getFeetToPixelsByZoom();
 }
 
 /**
@@ -439,4 +402,3 @@ geoloc ScreenUtil::pointToGeoloc(point pt)
     
     return g;
 }
-

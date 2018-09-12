@@ -39,9 +39,8 @@ void SDUtil::print(String file, String dataString, bool newLine)
     
     dataFile.close();
     
-//    Serial.println("wrote to SD: " + dataString);
+    Serial.println("wrote to SD: " + dataString);
   }
   else
     Serial.println("ERROR: NO SD FILE");
 }
-

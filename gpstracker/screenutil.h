@@ -8,6 +8,7 @@
 #include "Adafruit_GFX.h"
 #include "Adafruit_HX8357.h"
 #include <Adafruit_STMPE610.h>
+#include "menu.h"
 
 // GPS
 #include <Adafruit_GPS.h>
@@ -15,6 +16,11 @@
 
 #define BG HX8357_BLACK
 #define WHITE HX8357_WHITE
+
+typedef enum {
+  MenuState_sleep,
+  MenuState_map
+} menu_state;
 
 struct rect
 {
@@ -26,17 +32,11 @@ struct rect
   int cy;
 };
 
-typedef enum {
-  TouchState_noChange,
-  TouchState_on,
-  TouchState_off
-} touch_state;
-
 class ScreenUtil
 {
   public:
     ScreenUtil(String initMsg);
-    touch_state updateTouches();
+    menu_state getMenuState();
     void updateBatteryDisplay(String displayCharge, bool isLow);
     void println(int x, int y, int size, int color, String str, int bg=BG); // HX8357_BLACK // bg = HX8357_BLUE for debugging to see "text field" area
     void updateGPSText(Adafruit_GPS gps);
@@ -44,14 +44,13 @@ class ScreenUtil
     bool updateSDStatus(String filePath);
    
    private:
+    Menu *_menu;
+    
     rect _window;
 
     int _batteryTopPos;
     int _batteryBottomPos;
 
-    bool _isTouched;
-    bool _lastTouchState;
-    
     int textHeightForSize(int size);
     int textWidthForSize(int size);
     

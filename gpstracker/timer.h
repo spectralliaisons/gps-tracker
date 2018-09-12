@@ -9,7 +9,9 @@ class Timer
   	Timer(int interval);
   	bool update();
   	void reset();
+    void pause();
   private:
+    bool _active;
   	int _intervalMs;
   	uint32_t _timer;
     bool _initializing;

@@ -6,7 +6,7 @@
  * Tools > Port > Feather M0
  */
 
-#include<stdlib.h>
+#include <stdlib.h>
 #include <SPI.h>
 #include "sdutil.h"
 #include "battery.h"
@@ -31,7 +31,9 @@ void setup()
 {  
   // initialize console logging & wait for serial port to connect.
   Serial.begin(115200);
-//  while (!Serial) {;} // only uncomment this if you're connected via USB or else board reset will not work!
+  while (!Serial) {;} // only uncomment this if you're connected via USB or else board reset will not work!
+
+  Serial.println("initializing...");
 
   String errMsg = SDUtil::init();
   
@@ -51,10 +53,10 @@ void loop()
     return;
 
   // handle current touches
-  touch_state touchState = screen->updateTouches();
+  menu_state state = screen->getMenuState();
 
   // maybe update battery display
-  if (battery->update() || touchState == TouchState_off)
+  if (battery->update())
   {
     // refresh battery display
     String displayCharge = battery->displayCharge();
@@ -65,22 +67,22 @@ void loop()
     
     screen->updateBatteryDisplay(displayCharge, battery->isLow());
   }
-   
-  // read GPS and see if it's update time
-  if (gps->update() || touchState == TouchState_on)
-  {
-    // handle GPS location info if we have it
   
+  // read GPS and see if it's update time
+  if (gps->update())
+  {
     // try to get track from sd card or show error
     String gpsTrack = gps->getFilepath();
     if (!screen->updateSDStatus(gpsTrack))
       SDUtil::init(); // try to find it again (e.g. if user inserts)
-  
-    // GPS text summary
-    screen->updateGPSText(gps->getGPS());
-  
-    // GPS track display (map)
-    screen->updateGPSMap(gpsTrack); 
+
+    if (state == MenuState_map)
+    {
+      // GPS text summary
+      screen->updateGPSText(gps->getGPS());
+    
+      // GPS track display (map)
+      screen->updateGPSMap(gpsTrack);  
+    }
   }
 }
-

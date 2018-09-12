@@ -65,5 +65,3 @@ point Pythagoras::rotate(point p, float r)
   rotated.y = p.x * sin(r) + p.y * cos(r);
   return rotated;
 }
-
-
