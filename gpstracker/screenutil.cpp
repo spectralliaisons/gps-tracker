@@ -57,7 +57,7 @@ screen_command ScreenUtil::getScreenCommand()
       analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_LO);
       tft.fillScreen(BG);
 
-      showMsg("Drag finger vertically & release to zoom.");
+      showMsg("Drag finger vertically, release to zoom.");
 
       screenCmd = Screen_drawBattery;
       break;
@@ -71,7 +71,7 @@ screen_command ScreenUtil::getScreenCommand()
       analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_HI);
       tft.fillScreen(BG);
       
-      showMsg("Drawing your track...");
+      showMsg("Rendering track...");
 
       screenCmd = Screen_drawMap;
       break;
@@ -213,7 +213,7 @@ void ScreenUtil::updateGPSMap(String filePath)
   }
   file.close();
 
-  showMsg("parsed " + String(numPointsOnscreen) + "/" + String(numPoints) + " locations in " + String(millis() - t0) + "ms");
+  showMsg("Rendered " + String(numPointsOnscreen) + "/" + String(numPoints) + " locations in " + String(millis() - t0) + "ms.");
 
   // screen sleeps after while of no interaction in map mode
   _menu->startMenuTimer();
