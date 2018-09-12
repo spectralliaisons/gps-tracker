@@ -24,8 +24,6 @@
 // Use hardware SPI and the above for CS/DC
 Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
 
-#define REQUIRE_TOUCH if (_menu && _menu->isTouched()) return
-
 bool toggle = true;
 
 ScreenUtil::ScreenUtil(String initMsg)
@@ -34,11 +32,12 @@ ScreenUtil::ScreenUtil(String initMsg)
   tft.begin(HX8357D);
   tft.setRotation(1);
   tft.fillScreen(BG);
+  
+  analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_LO);
 
   _menu = new Menu();
 
   _batteryBottomPos = -999;
-  _lastMsg = "";
 
   showMsg(initMsg);
 }
@@ -59,29 +58,26 @@ menu_state ScreenUtil::getMenuState()
       state = MenuState_sleep;
       break;
     
-    case TouchState_off:
-      Serial.println("TouchState_off");
-//      analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_LO);
-//      
-//      // clear screen
-//      tft.fillScreen(BG);
-//
-//      // force redraw battery
-//      _lastDisplayedCharge = "";
-//
-//      Serial.println("ScreenUtil ==> MenuState_sleep");
-//      state = MenuState_sleep;
-      break;
-
     case TouchState_on:
       Serial.println("TouchState_on");
-//      analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_HI);
-//
-//      _lastDisplayedPosition = "";
-//      _lastMsg = "";
-//
-//      Serial.println("ScreenUtil ==> MenuState_map");
-//      state = MenuState_map;
+      analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_LO);
+      
+      // clear screen
+      tft.fillScreen(BG);
+
+      Serial.println("ScreenUtil ==> MenuState_sleep");
+      state = MenuState_sleep;
+      break;
+
+    case TouchState_off:
+      Serial.println("TouchState_off");
+      analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_HI);
+
+      // clear screen
+      tft.fillScreen(BG);
+
+      Serial.println("ScreenUtil ==> MenuState_map");
+      state = MenuState_map;
       break;
   }
 
@@ -89,14 +85,7 @@ menu_state ScreenUtil::getMenuState()
 }
 
 void ScreenUtil::showMsg(String msg)
-{
-//  Serial.println("msg: " + msg + " VS lastmsg: " + _lastMsg + " = " + String(msg == _lastMsg));
-  
-  if (msg == _lastMsg)
-    return;
-
-  _lastMsg = msg;
-  
+{  
   println(0, 0, DEF_TEXT_SIZE, HX8357_WHITE, msg, HX8357_RED);
 
   // make way for the message
@@ -109,10 +98,6 @@ void ScreenUtil::showMsg(String msg)
 
   _batteryTopPos = _window.y + TEXT_PAD_Y;
   _batteryBottomPos = _batteryTopPos + textHeightForSize(DEF_TEXT_SIZE);
-
-  // force all to redraw based on new window rect
-//  _lastDisplayedCharge = "";
-//  _lastDisplayedPosition = "";
 }
 
 int ScreenUtil::textHeightForSize(int size)
@@ -154,18 +139,11 @@ bool ScreenUtil::updateSDStatus(String filePath)
 
 void ScreenUtil::updateBatteryDisplay(String displayCharge, bool isLow)
 {
-  // to save power, only redraw if changed
-  if (_lastDisplayedCharge != displayCharge)
-  {
-    println(_window.x, _batteryTopPos, DEF_TEXT_SIZE, isLow ? HX8357_RED : HX8357_GREEN, "[BATTERY] " + displayCharge + "%"); 
-    _lastDisplayedCharge = displayCharge;
-  }
+  println(_window.x, _batteryTopPos, DEF_TEXT_SIZE, isLow ? HX8357_RED : HX8357_GREEN, "[BATTERY] " + displayCharge + "%");
 }
 
 void ScreenUtil::updateGPSText(Adafruit_GPS gps)
 {
-  REQUIRE_TOUCH;
-  
   int left = _window.x;
   int top = _batteryBottomPos + TEXT_PAD_Y; // below battery text area
 
@@ -183,36 +161,16 @@ void ScreenUtil::updateGPSText(Adafruit_GPS gps)
 
   String currPos = String(lat) + "_" + String(lng);
   
-  if (_lastDisplayedPosition != currPos)
-  {
-    _lastDisplayedPosition = currPos;
-    
-    println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*0, DEF_TEXT_SIZE, HX8357_WHITE, "lat: " + lat);
-    println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*1, DEF_TEXT_SIZE, HX8357_WHITE, "lng: " + lng);
-    println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*2, DEF_TEXT_SIZE, HX8357_WHITE, "altitude (feet): " + alt);
-    println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*3, DEF_TEXT_SIZE, HX8357_WHITE, "satellites: " + sat);
-    
-//    drawBorder(gps.fix ? BG : HX8357_RED);
-  }
+  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*0, DEF_TEXT_SIZE, HX8357_WHITE, "lat: " + lat);
+  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*1, DEF_TEXT_SIZE, HX8357_WHITE, "lng: " + lng);
+  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*2, DEF_TEXT_SIZE, HX8357_WHITE, "altitude (feet): " + alt);
+  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*3, DEF_TEXT_SIZE, HX8357_WHITE, "satellites: " + sat);
 }
-
-//void ScreenUtil::drawBorder(int color)
-//{
-//  for (int i = 0; i < BORDER_WIDTH; i++)
-//  {
-//    tft.drawFastHLine(i, i, width()-(i*2), color);
-//    tft.drawFastHLine(i, height()-(i+1), width(), color);
-//    tft.drawFastVLine(i, i, height()-(i*2), color);
-//    tft.drawFastVLine(width()-(i+1), i, height()-(i+1), color);
-//  }
-//}
 
 // DISPLAY GPS COORDS
 
 void ScreenUtil::updateGPSMap(String filePath)
 {
-  REQUIRE_TOUCH;
-  
   File file = SD.open(filePath);
   
   if (!file)
@@ -255,7 +213,7 @@ void ScreenUtil::updateGPSMap(String filePath)
   file.close();
 
 //  Serial.println();
-//  Serial.println("parsed gps track in " + String(millis() - t0) + "ms");
+  Serial.println("parsed gps track in " + String(millis() - t0) + "ms");
   showMsg("parsed " + String(numPointsOnscreen) + "/" + String(numPoints) + " locations in " + String(millis() - t0) + "ms");
 }
 

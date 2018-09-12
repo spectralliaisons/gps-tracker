@@ -23,9 +23,9 @@ Battery::Battery(int pin)
   if (LOG_BATTERY)
     SDUtil::remove(LOG_NAME);
 
-  _logTimer = new Timer(LOG_DELAY);
+  _logTimer = new Timer("LOG_BATTERY", LOG_DELAY);
 
-  _updateTimer = new Timer(UPDATE_DELAY);
+  _updateTimer = new Timer("UPDATE_BATTERY", UPDATE_DELAY);
 }
 
 /**
@@ -63,4 +63,3 @@ bool Battery::isLow()
 {
   return _percentCharge <= WARN_PCT;
 }
-

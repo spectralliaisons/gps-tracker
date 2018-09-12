@@ -38,7 +38,7 @@ GpsUtil::GpsUtil()
 	// // Ask for firmware version
 	GPSSerial.println(PMTK_Q_RELEASE);
 
-  _timer = new Timer(REFRESH_MS);
+  _timer = new Timer("LOG_GPS", REFRESH_MS);
 }
 
 Adafruit_GPS GpsUtil::getGPS()
@@ -124,4 +124,3 @@ void GpsUtil::logCurrentGeoloc()
   String posLn = " " + lngStr + "," + latStr + ",0"; // TODO: what's up with the ",0"?
   SDUtil::print(_currLog, posLn);
 }
-

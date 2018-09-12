@@ -55,12 +55,6 @@ class ScreenUtil
     int textWidthForSize(int size);
     
     void showMsg(String msg);
-    
-//    void drawBorder(int color);
-
-    String _lastMsg;
-    String _lastDisplayedCharge;
-    String _lastDisplayedPosition;
 
     geoloc findCurrGeoloc(String filePath);
     void drawDistancesFrom(geoloc currGeoloc);

@@ -55,6 +55,8 @@ void loop()
   // handle current touches
   menu_state state = screen->getMenuState();
 
+//  Serial.println("loop() menu_state state: " + String(state));
+
   // maybe update battery display
   if (battery->update())
   {
@@ -69,20 +71,21 @@ void loop()
   }
   
   // read GPS and see if it's update time
-  if (gps->update())
-  {
-    // try to get track from sd card or show error
-    String gpsTrack = gps->getFilepath();
-    if (!screen->updateSDStatus(gpsTrack))
-      SDUtil::init(); // try to find it again (e.g. if user inserts)
+  bool newFix = gps->update();
 
-    if (state == MenuState_map)
-    {
-      // GPS text summary
-      screen->updateGPSText(gps->getGPS());
+  // try to get track from sd card or show error
+  String gpsTrack = gps->getFilepath();
+//  if (!screen->updateSDStatus(gpsTrack))
+//    SDUtil::init(); // try to find it again (e.g. if user inserts)
+
+  if (state == MenuState_map)
+  {
+    Serial.println("STATE IS MAP. DRAWING MAP...");
     
-      // GPS track display (map)
-      screen->updateGPSMap(gpsTrack);  
-    }
+    // GPS text summary
+    screen->updateGPSText(gps->getGPS());
+  
+    // GPS track display (map)
+    screen->updateGPSMap(gpsTrack);  
   }
 }

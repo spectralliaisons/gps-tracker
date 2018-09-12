@@ -1,9 +1,10 @@
 #include "timer.h"
 
-Timer::Timer(int interval)
+Timer::Timer(String id, int interval)
 {
   // make sure first update fires timer
   _timer = -1;
+  _id = id;
   _intervalMs = interval;
   _initializing = true;
   _active = true;
@@ -23,7 +24,7 @@ bool Timer::update()
     
     reset();
 
-    Serial.println("timer fired: " + String(millis() - _timer) + " vs " + String(_intervalMs));
+    Serial.println("Timer::" + _id + " fired");
 
     return true;
   }

@@ -27,7 +27,7 @@ Menu::Menu()
     while (1);
 
   _isTouched = false;
-  _lastTouchState = true; // force first _isTouched to work
+  _lastTouchState = false;
 
   _currZoom = _lastZoom = 1;
 

@@ -6,11 +6,12 @@
 class Timer
 {
   public:
-  	Timer(int interval);
+  	Timer(String id, int interval);
   	bool update();
   	void reset();
     void pause();
   private:
+    String _id;
     bool _active;
   	int _intervalMs;
   	uint32_t _timer;
