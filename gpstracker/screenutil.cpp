@@ -54,22 +54,21 @@ screen_command ScreenUtil::getScreenCommand()
   switch (menuCmd)
   {
     case Menu_sleep:
-      analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_LO);
-      tft.fillScreen(BG);
-
+      setBacklightAndClearScreen(BACKLIGHT_LEVEL_LO);
+      
       showMsg("Drag finger vertically, release to zoom.");
-
+      
       screenCmd = Screen_drawBattery;
       break;
       
     case Menu_updateZoom:
       analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_HI);
+      
       updateZoomDisplay();
       break;
     
     case Menu_touchOff:
-      analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_HI);
-      tft.fillScreen(BG);
+      setBacklightAndClearScreen(BACKLIGHT_LEVEL_HI);
       
       showMsg("Rendering track...");
 
@@ -78,6 +77,12 @@ screen_command ScreenUtil::getScreenCommand()
   } 
 
   return screenCmd;
+}
+
+void ScreenUtil::setBacklightAndClearScreen(int level)
+{
+  analogWrite(BACKLIGHT_PIN, level);
+  tft.fillScreen(BG);
 }
 
 void ScreenUtil::showMsg(String msg)
@@ -288,7 +293,7 @@ void ScreenUtil::drawDistancesFrom(geoloc currGeoloc)
   }
 
   // clear center
-  tft.fillCircle(_window.cx, _window.cy, feetToPixels(feetPerRing)-1, BG);
+  tft.fillCircle(_window.cx, _window.cy, feetToPixels(feetPerRing)-1, BG); 
 }
 
 bool ScreenUtil::drawGeoloc(geoloc g0, geoloc g1, geoloc currGeoloc)

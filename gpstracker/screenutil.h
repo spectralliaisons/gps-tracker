@@ -55,7 +55,8 @@ class ScreenUtil
 
     int textHeightForSize(int size);
     int textWidthForSize(int size);
-    
+
+    void setBacklightAndClearScreen(int level);
     void showMsg(String msg);
 
     geoloc findCurrGeoloc(String filePath);
