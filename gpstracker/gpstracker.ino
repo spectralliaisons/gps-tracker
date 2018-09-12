@@ -58,7 +58,7 @@ void loop()
 //  Serial.println("loop() menu_state state: " + String(state));
 
   // maybe update battery display
-  if (battery->update())
+  if (state == MenuState_sleep || battery->update())
   {
     // refresh battery display
     String displayCharge = battery->displayCharge();

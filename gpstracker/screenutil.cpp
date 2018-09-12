@@ -57,6 +57,10 @@ menu_state ScreenUtil::getMenuState()
 //      Serial.println("ScreenUtil ==> MenuState_sleep");
       state = MenuState_sleep;
       break;
+
+    case TouchState_updateZoom:
+      showMsg("ZOOM: " + String(pixelsToFeet(_window.width)) + " ft");
+      break;
     
     case TouchState_on:
       Serial.println("TouchState_on");
@@ -161,10 +165,10 @@ void ScreenUtil::updateGPSText(Adafruit_GPS gps)
 
   String currPos = String(lat) + "_" + String(lng);
   
-  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*0, DEF_TEXT_SIZE, HX8357_WHITE, "lat: " + lat);
-  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*1, DEF_TEXT_SIZE, HX8357_WHITE, "lng: " + lng);
-  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*2, DEF_TEXT_SIZE, HX8357_WHITE, "altitude (feet): " + alt);
-  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*3, DEF_TEXT_SIZE, HX8357_WHITE, "satellites: " + sat);
+  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*0, DEF_TEXT_SIZE, HX8357_YELLOW, "lat: " + lat);
+  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*1, DEF_TEXT_SIZE, HX8357_YELLOW, "lng: " + lng);
+  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*2, DEF_TEXT_SIZE, HX8357_YELLOW, "altitude (feet): " + alt);
+  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*3, DEF_TEXT_SIZE, HX8357_YELLOW, "satellites: " + sat);
 }
 
 // DISPLAY GPS COORDS

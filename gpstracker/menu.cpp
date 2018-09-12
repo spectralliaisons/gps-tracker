@@ -71,7 +71,12 @@ touch_state Menu::updateTouches()
     // maybe change zoom level (if so, force redraw map at this zoom)
     bool zoomIsSame = isZoomUnchanged();
 
-    if (!touchStateDidNotChange)// || !zoomIsSame)
+    if (!zoomIsSame)
+    {
+      Serial.println("Menu ==> TouchState_updateZoom");
+      touchState = TouchState_updateZoom;
+    }
+    else if (!touchStateDidNotChange)
     {
       Serial.println("Menu ==> TouchState_on");
       touchState = TouchState_on; 

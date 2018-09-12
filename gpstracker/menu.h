@@ -12,7 +12,8 @@
 typedef enum {
   TouchState_noChange,
   TouchState_on,
-  TouchState_off
+  TouchState_off,
+  TouchState_updateZoom
 } touch_state;
 
 class Menu
