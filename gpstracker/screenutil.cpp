@@ -19,7 +19,9 @@
 
 #define DEF_TEXT_SIZE 2
 #define TEXT_PAD_Y 5
-//#define BORDER_WIDTH 2
+
+#define FEET_PER_MILE 5280
+#define MIN_DISPLAYED_FEET (FEET_PER_MILE / 3)
 
 // Use hardware SPI and the above for CS/DC
 Adafruit_HX8357 tft = Adafruit_HX8357(TFT_CS, TFT_DC, TFT_RST);
@@ -120,11 +122,6 @@ void ScreenUtil::println(int x, int y, int size, int color, String str, int bg)
   tft.setTextSize(size);
   tft.setTextColor(color); 
   tft.println(str);
-}
-
-void ScreenUtil::updateZoomDisplay()
-{
-  showMsg("ZOOM: " + String(pixelsToFeet(_window.width)) + " ft");
 }
 
 bool ScreenUtil::updateSDStatus(String filePath)
@@ -240,13 +237,44 @@ geoloc ScreenUtil::findCurrGeoloc(String filePath)
   return Pythagoras::stringToGeoloc(lastLine);
 }
 
+float ScreenUtil::maxDisplayableFeet()
+{
+  return pixelsToFeet(_window.width / 2);
+}
+
+bool ScreenUtil::displayFeet()
+{
+  return maxDisplayableFeet() < MIN_DISPLAYED_FEET;
+}
+
+void ScreenUtil::updateZoomDisplay()
+{
+  if (displayFeet())
+    showMsg("ZOOM: " + String(pixelsToFeet(_window.width)) + " feet");
+  else
+    showMsg("ZOOM: " + String(pixelsToFeet(_window.width)/FEET_PER_MILE) + " miles");
+}
+
 /**
  * Concentric circles around curr loc to show distances from where you are
  */
 void ScreenUtil::drawDistancesFrom(geoloc currGeoloc)
 {
-  float maxFeet = pixelsToFeet(_window.width / 2);
-  float feetPerRing = 250.0;
+  float maxFeet = maxDisplayableFeet();
+  
+  // ring sizes depend on zoom
+  float feetPerRing;
+  if (!displayFeet())
+    feetPerRing = FEET_PER_MILE / 4;
+  else if (maxFeet >= 1500)
+    feetPerRing = 500;
+  else if (maxFeet >= 500)
+    feetPerRing = 250;
+  else if (maxFeet >= 250)
+    feetPerRing = 50;
+  else
+    feetPerRing = 20;
+  
   float numRings = maxFeet / feetPerRing;
 
   for (int i = 1; i < numRings; i++)
@@ -256,12 +284,19 @@ void ScreenUtil::drawDistancesFrom(geoloc currGeoloc)
     tft.drawCircle(_window.cx, _window.cy, r, HX8357_WHITE);
 
     // legend
-    if (i % 2 == 0)
+    if (i % 2 == 1)
     {
       tft.setCursor(_window.cx + feetToPixels(feet) + 1, _window.cy - 10);
       tft.setTextSize(1);
       tft.setTextColor(HX8357_WHITE); 
-      tft.println(String(round(feet)) + "ft"); 
+
+      if (displayFeet())
+        tft.println(String(round(feet)) + "ft"); 
+      else
+      {
+        float mls = feet / FEET_PER_MILE;
+        tft.println(String(mls) + "mls");
+      }
     }
   }
 
