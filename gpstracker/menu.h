@@ -3,7 +3,7 @@
 
 #include "Arduino.h"
 #include "pythagoras.h"
-//#include "timer.h"
+#include "timer.h"
 
 // TFT Touchscreen
 #include "Adafruit_HX8357.h"
@@ -13,7 +13,8 @@ typedef enum {
   TouchState_noChange,
   TouchState_on,
   TouchState_off,
-  TouchState_updateZoom
+  TouchState_updateZoom,
+  TouchState_showMenu
 } touch_state;
 
 class Menu
@@ -26,7 +27,7 @@ class Menu
     float getFeetToPixelsByZoom();
    
    private:
-//   Timer *_sleepTimer;
+   Timer *_sleepTimer;
    
     bool _isTouched;
     bool _lastTouchState;

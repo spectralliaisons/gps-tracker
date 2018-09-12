@@ -53,21 +53,18 @@ menu_state ScreenUtil::getMenuState()
 
   switch (touchState)
   {
-    case TouchState_noChange:
-//      Serial.println("ScreenUtil ==> MenuState_sleep");
-      state = MenuState_sleep;
-      break;
-
     case TouchState_updateZoom:
-      showMsg("ZOOM: " + String(pixelsToFeet(_window.width)) + " ft");
+      updateZoomDisplay();
       break;
     
-    case TouchState_on:
+    case TouchState_showMenu:
       Serial.println("TouchState_on");
       analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_LO);
       
       // clear screen
       tft.fillScreen(BG);
+
+      updateZoomDisplay();
 
       Serial.println("ScreenUtil ==> MenuState_sleep");
       state = MenuState_sleep;
@@ -79,6 +76,7 @@ menu_state ScreenUtil::getMenuState()
 
       // clear screen
       tft.fillScreen(BG);
+      showMsg("Drawing your track...");
 
       Serial.println("ScreenUtil ==> MenuState_map");
       state = MenuState_map;
@@ -123,6 +121,11 @@ void ScreenUtil::println(int x, int y, int size, int color, String str, int bg)
   tft.setTextSize(size);
   tft.setTextColor(color); 
   tft.println(str);
+}
+
+void ScreenUtil::updateZoomDisplay()
+{
+  showMsg("ZOOM: " + String(pixelsToFeet(_window.width)) + " ft");
 }
 
 bool ScreenUtil::updateSDStatus(String filePath)

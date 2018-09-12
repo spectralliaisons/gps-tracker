@@ -58,7 +58,9 @@ void loop()
 //  Serial.println("loop() menu_state state: " + String(state));
 
   // maybe update battery display
-  if (state == MenuState_sleep || battery->update())
+//  IT WAS THIS CRAP BUT YOURE MIXING menu_state and touch_state !!! state == TouchState_on || state == TouchState_updateZoom || state == TouchState_showMenu || state == MenuState_map ||
+  bool menuSaysUpdateBattery = state == TouchState_on || state == TouchState_updateZoom || state == TouchState_showMenu || state == MenuState_map; 
+  if (menuSaysUpdateBattery || battery->update())
   {
     // refresh battery display
     String displayCharge = battery->displayCharge();

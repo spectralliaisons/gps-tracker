@@ -37,6 +37,7 @@ class ScreenUtil
   public:
     ScreenUtil(String initMsg);
     menu_state getMenuState();
+    void updateZoomDisplay();
     void updateBatteryDisplay(String displayCharge, bool isLow);
     void println(int x, int y, int size, int color, String str, int bg=BG); // HX8357_BLACK // bg = HX8357_BLUE for debugging to see "text field" area
     void updateGPSText(Adafruit_GPS gps);

@@ -31,8 +31,8 @@ Menu::Menu()
 
   _currZoom = _lastZoom = 1;
 
-//  _sleepTimer = new Timer(DELAY_SCREEN_OFF);
-//  _sleepTimer->pause();
+  _sleepTimer = new Timer("SCREEN_OFF", DELAY_SCREEN_OFF);
+  _sleepTimer->pause();
 
   Serial.print("done!");
   Serial.println("");
@@ -43,11 +43,12 @@ Menu::Menu()
  */
 touch_state Menu::updateTouches()
 {
-//  if (_sleepTimer->update())
-//  {
-//    Serial.println("Menu :: sleep timer forcing ==> return TouchState_off");
-//    return TouchState_off;
-//  }
+  if (_sleepTimer->update())
+  {
+    Serial.println("Menu :: sleep timer forcing ==> return TouchState_off");
+    _sleepTimer->pause();
+    return TouchState_showMenu;
+  }
   
   _isTouched = touch.touched();
   
@@ -66,7 +67,7 @@ touch_state Menu::updateTouches()
   if (_isTouched)
   {
     // reset sleep timer
-//    _sleepTimer->reset();
+    _sleepTimer->reset();
     
     // maybe change zoom level (if so, force redraw map at this zoom)
     bool zoomIsSame = isZoomUnchanged();
