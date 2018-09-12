@@ -18,9 +18,10 @@
 #define WHITE HX8357_WHITE
 
 typedef enum {
-  MenuState_sleep,
-  MenuState_map
-} menu_state;
+  Screen_ignore,
+  Screen_drawBattery,
+  Screen_drawMap
+} screen_command;
 
 struct rect
 {
@@ -36,7 +37,7 @@ class ScreenUtil
 {
   public:
     ScreenUtil(String initMsg);
-    menu_state getMenuState();
+    screen_command getScreenCommand();
     void updateZoomDisplay();
     void updateBatteryDisplay(String displayCharge, bool isLow);
     void println(int x, int y, int size, int color, String str, int bg=BG); // HX8357_BLACK // bg = HX8357_BLUE for debugging to see "text field" area

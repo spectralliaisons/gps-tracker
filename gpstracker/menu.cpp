@@ -20,8 +20,6 @@ Adafruit_STMPE610 touch = Adafruit_STMPE610(STMPE_CS);
 
 Menu::Menu()
 {
-  Serial.print("menu initializing...");
-  
   // initialize touchscreen
   if (!touch.begin())
     while (1);
@@ -32,64 +30,56 @@ Menu::Menu()
   _currZoom = _lastZoom = 1;
 
   _sleepTimer = new Timer("SCREEN_OFF", DELAY_SCREEN_OFF);
-  _sleepTimer->pause();
-
-  Serial.print("done!");
-  Serial.println("");
 }
 
 /**
  * Handle touch state change.
  */
-touch_state Menu::updateTouches()
+menu_command Menu::getMenuCommand()
 {
   if (_sleepTimer->update())
   {
-    Serial.println("Menu :: sleep timer forcing ==> return TouchState_off");
     _sleepTimer->pause();
-    return TouchState_showMenu;
+    return Menu_sleep;
   }
   
   _isTouched = touch.touched();
-  
-  bool touchStateDidNotChange = _isTouched == _lastTouchState;
 
+  // did touch state just change?
+  bool touchStateDidNotChange = _isTouched == _lastTouchState;
   _lastTouchState = _isTouched;
 
-  touch_state touchState = TouchState_noChange;
-  
   if (!_isTouched && !touchStateDidNotChange)
   {
-    Serial.println("Menu ==> TouchState_off");
-    touchState = TouchState_off;
-  }
-
-  if (_isTouched)
+    return Menu_touchOff;
+  } 
+  else if (_isTouched)
   {
-    // reset sleep timer
-    _sleepTimer->reset();
-    
     // maybe change zoom level (if so, force redraw map at this zoom)
     bool zoomIsSame = isZoomUnchanged();
 
+    // any touches will require full map draw before sleep timer starts again
+    _sleepTimer->pause();
+
     if (!zoomIsSame)
     {
-      Serial.println("Menu ==> TouchState_updateZoom");
-      touchState = TouchState_updateZoom;
+      return Menu_updateZoom;
     }
-    else if (!touchStateDidNotChange)
-    {
-      Serial.println("Menu ==> TouchState_on");
-      touchState = TouchState_on; 
-    }
+
+    return Menu_touched;
   }
   
-  return touchState;
+  return Menu_ignore;
 }
 
 bool Menu::isTouched()
 {
   return _isTouched;
+}
+
+void Menu::startMenuTimer()
+{
+  _sleepTimer->reset();
 }
 
 float Menu::getFeetToPixelsByZoom()
@@ -116,7 +106,6 @@ bool Menu::isZoomUnchanged()
     if (_currZoom != _lastZoom)
     {
       zoomDidNotChange = false;
-      Serial.println("------- ZOOM " + String(_currZoom));
       _lastZoom = _currZoom;
     }
   }

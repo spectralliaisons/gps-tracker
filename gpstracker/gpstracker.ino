@@ -53,14 +53,11 @@ void loop()
     return;
 
   // handle current touches
-  menu_state state = screen->getMenuState();
-
-//  Serial.println("loop() menu_state state: " + String(state));
+  screen_command screenCmd = screen->getScreenCommand();
 
   // maybe update battery display
-//  IT WAS THIS CRAP BUT YOURE MIXING menu_state and touch_state !!! state == TouchState_on || state == TouchState_updateZoom || state == TouchState_showMenu || state == MenuState_map ||
-  bool menuSaysUpdateBattery = state == TouchState_on || state == TouchState_updateZoom || state == TouchState_showMenu || state == MenuState_map; 
-  if (menuSaysUpdateBattery || battery->update())
+  bool screenStateChanged = screenCmd == Screen_drawBattery || screenCmd == Screen_drawMap;
+  if (screenStateChanged || battery->update())
   {
     // refresh battery display
     String displayCharge = battery->displayCharge();
@@ -80,10 +77,8 @@ void loop()
 //  if (!screen->updateSDStatus(gpsTrack))
 //    SDUtil::init(); // try to find it again (e.g. if user inserts)
 
-  if (state == MenuState_map)
+  if (screenCmd == Screen_drawMap)
   {
-    Serial.println("STATE IS MAP. DRAWING MAP...");
-    
     // GPS text summary
     screen->updateGPSText(gps->getGPS());
   

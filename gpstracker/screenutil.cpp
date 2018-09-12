@@ -45,45 +45,39 @@ ScreenUtil::ScreenUtil(String initMsg)
 /**
  * Handle touch state change.
  */
-menu_state ScreenUtil::getMenuState()
+screen_command ScreenUtil::getScreenCommand()
 {
-  touch_state touchState = _menu->updateTouches();
+  menu_command menuCmd = _menu->getMenuCommand();
+  
+  screen_command screenCmd = Screen_ignore;
 
-  menu_state state = MenuState_sleep;
-
-  switch (touchState)
+  switch (menuCmd)
   {
-    case TouchState_updateZoom:
+    case Menu_sleep:
+      analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_LO);
+      tft.fillScreen(BG);
+
+      showMsg("Drag finger vertically & release to zoom.");
+
+      screenCmd = Screen_drawBattery;
+      break;
+      
+    case Menu_updateZoom:
+      analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_HI);
       updateZoomDisplay();
       break;
     
-    case TouchState_showMenu:
-      Serial.println("TouchState_on");
-      analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_LO);
-      
-      // clear screen
-      tft.fillScreen(BG);
-
-      updateZoomDisplay();
-
-      Serial.println("ScreenUtil ==> MenuState_sleep");
-      state = MenuState_sleep;
-      break;
-
-    case TouchState_off:
-      Serial.println("TouchState_off");
+    case Menu_touchOff:
       analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_HI);
-
-      // clear screen
       tft.fillScreen(BG);
+      
       showMsg("Drawing your track...");
 
-      Serial.println("ScreenUtil ==> MenuState_map");
-      state = MenuState_map;
+      screenCmd = Screen_drawMap;
       break;
-  }
+  } 
 
-  return state;
+  return screenCmd;
 }
 
 void ScreenUtil::showMsg(String msg)
@@ -219,9 +213,10 @@ void ScreenUtil::updateGPSMap(String filePath)
   }
   file.close();
 
-//  Serial.println();
-  Serial.println("parsed gps track in " + String(millis() - t0) + "ms");
   showMsg("parsed " + String(numPointsOnscreen) + "/" + String(numPoints) + " locations in " + String(millis() - t0) + "ms");
+
+  // screen sleeps after while of no interaction in map mode
+  _menu->startMenuTimer();
 }
 
 geoloc ScreenUtil::findCurrGeoloc(String filePath)

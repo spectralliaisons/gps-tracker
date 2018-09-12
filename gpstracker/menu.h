@@ -10,20 +10,21 @@
 #include <Adafruit_STMPE610.h>
 
 typedef enum {
-  TouchState_noChange,
-  TouchState_on,
-  TouchState_off,
-  TouchState_updateZoom,
-  TouchState_showMenu
-} touch_state;
+  Menu_ignore,
+  Menu_updateZoom,
+  Menu_touchOff,
+  Menu_sleep,
+  Menu_touched,
+} menu_command;
 
 class Menu
 {
   public:
     Menu();
-    touch_state updateTouches();
+    menu_command getMenuCommand();
     bool isZoomUnchanged();
     bool isTouched();
+    void startMenuTimer();
     float getFeetToPixelsByZoom();
    
    private:
