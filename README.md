@@ -35,6 +35,25 @@ Solar-powered GPS tracker that displays user's track, saving it to kml file on s
 ### wiring
 - [ ] hook up materials.
 
+### Arduino IDE Setup
+- follow steps here: https://learn.adafruit.com/adafruit-feather-m0-basic-proto/setup
+#### boards
+- Tools > Boards Manager: 
+- Arduino SAMD Boards
+- Adafruit SAMD Boards
+#### libraries
+- copy [Adafruit_GPS](https://github.com/adafruit/Adafruit_GPS) to Documents/Arduino/libraries/
+- Tools > Manage Libraries > 
+- Adafruit HX8357
+- Adafruit STMPE610
+- Adafruit GFX
+
+### reinstalling Arduino
+- delete:
+- App
+- Documents/Arduino
+- Documents/Arduino15 (why is this not always existing? it needs to be deleted...)
+
 ### GPS
 - [ ] print current gps coord on screen
 
