@@ -4,6 +4,7 @@
 ![an image examplar](./examples/proofofconcept1.jpg)
 
 ## displaying the initial section of the Russian River East Fork from SD card
+With concentric circles indicating distance from current location (at center)
 ![an image examplar](./examples/proofofconcept2.jpg)
 
 ## overview
