@@ -10,8 +10,8 @@
 #define WARN_PCT 10
 
 #define LOG_BATTERY true
-#define LOG_DELAY 60000//60000
-#define LOG_NAME "battery.txt"
+#define LOG_DELAY 10000
+#define LOG_PREFIX "BAT"
 
 #define UPDATE_DELAY 10000
 
@@ -21,7 +21,13 @@ Battery::Battery(int pin)
   _start = millis();
 
   if (LOG_BATTERY)
-    SDUtil::remove(LOG_NAME);
+  {
+    _currLog = SDUtil::increment(LOG_PREFIX);
+    SDUtil::remove(_currLog);
+
+    // print headers
+    SDUtil::print(_currLog, "secs,voltage,percent", true);
+  }
 
   _logTimer = new Timer("LOG_BATTERY", LOG_DELAY);
 
@@ -43,17 +49,18 @@ String Battery::displayCharge()
 	v *= 3.3;  // Multiply by 3.3V, our reference voltage
 	v /= 1024; // convert to voltage
 
+  _percentCharge = Pythagoras::scale(VBAT_MIN, VBAT_MAX, 0.0, 100.0, v); // voltage from 0-100
+
   if (LOG_BATTERY)
   {
     if (_logTimer->update())
     {
       // log voltage with timestamp
-      String dataString = String(millis() - _start) + "," + String(v);
-      SDUtil::print(LOG_NAME, dataString, true);
+      int secsSinceLaunch = (millis() - _start) / 1000;
+      String dataString = String(secsSinceLaunch) + "," + String(v) + "," + String(_percentCharge);
+      SDUtil::print(_currLog, dataString, true);
     }
   }
-  
-	_percentCharge = Pythagoras::scale(VBAT_MIN, VBAT_MAX, 0.0, 100.0, v); // voltage from 0-100
 	
 //	return String(v) + "V = " + String(_percentCharge);
   return String(int(round(_percentCharge)));

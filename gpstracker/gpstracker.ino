@@ -31,7 +31,7 @@ void setup()
 {  
   // initialize console logging & wait for serial port to connect.
   Serial.begin(115200);
-//  while (!Serial) {;} // only uncomment this if you're connected via USB or else board reset will not work!
+  while (!Serial) {;} // only uncomment this if you're connected via USB or else board reset will not work!
 
   Serial.println("initializing...");
 

@@ -24,7 +24,7 @@ bool Timer::update()
     
     reset();
 
-    Serial.println("Timer::" + _id + " fired");
+//    Serial.println("Timer::" + _id + " fired");
 
     return true;
   }

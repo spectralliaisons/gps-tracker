@@ -7,6 +7,7 @@ class SDUtil
 {
   public:
     static String init();
+    static String increment(String prefix);
     static void remove(String file);
     static void print(String file, String dataString, bool newLine=false);
 };

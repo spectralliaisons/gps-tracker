@@ -12,6 +12,7 @@ class Battery
     bool isLow();
     bool update();
   private:
+    String _currLog;
   	Timer *_logTimer;
   	Timer *_updateTimer;
     float _percentCharge;

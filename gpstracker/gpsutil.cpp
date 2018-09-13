@@ -7,7 +7,8 @@
 #define REFRESH_MS 2000
 
 #define LOG_GPS true
-#define LOG_NAME "GPSTEST.TXT" // "gpstrak.txt" // TODO: increment based on found files
+#define LOG_PREFIX "TRK"
+#define DEBUG_LOG_NAME "GPSTEST.TXT"
 
 #define LOG true
 
@@ -18,9 +19,9 @@ GpsUtil::GpsUtil()
 {
   if (LOG_GPS)
   {
-    // TODO: curr log name increments based on found files
-    _currLog = LOG_NAME;
+//    _currLog = SDUtil::increment(LOG_PREFIX);
 //    SDUtil::remove(_currLog);
+    _currLog = DEBUG_LOG_NAME;
   }
 
 	// default NMEA GPS baud
