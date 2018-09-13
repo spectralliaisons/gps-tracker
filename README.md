@@ -1,4 +1,5 @@
 # gpstracker
+Solar-powered GPS tracker that displays user's track, saving it to kml file on sd card. Running on [Adafruit Feather M0 Adalogger](https://www.adafruit.com/product/2796).
 
 ## proof of concept: print gps coordinates
 ![an image examplar](./examples/proofofconcept1.jpg)
@@ -14,18 +15,24 @@ Solar-powered GPS tracker that displays user's track, saving it to kml file on s
 
 ### goal features:
 - [ ] draws other kml tracks on sd card (different color than curr track)
-- [ ] can scroll touchscreen by 'dragging'
-- [ ] can zoom in/out
-- [ ] concentric circles centered on user location denoting distances
+- <del>[ ] can scroll touchscreen by 'dragging' (WON'T DO: Adafruit TFT display draws too slowly for this!)</del>
+- [X] can zoom in/out (display units change from feet to miles when zoomed out sufficiently)
+- [X] concentric circles centered on user location denoting distances
 
 ## materials
 
 ### microcontroller
-- [adalogger](https://www.adafruit.com/product/2796)
+- [adalogger](https://www.adafruit.com/product/2796) >>[overview](https://learn.adafruit.com/adafruit-feather-m0-adalogger/overview) >>[specs](https://cdn-learn.adafruit.com/downloads/pdf/adafruit-feather-m0-adalogger.pdf)
+
 ### sensors
 - [GPS](https://www.adafruit.com/product/746)
+
 ### interface
-- [touchscreen](https://learn.adafruit.com/adafruit-3-5-tft-featherwing/overview)
+- [touchscreen](https://learn.adafruit.com/adafruit-3-5-tft-featherwing/overview) >>[specs](https://cdn-learn.adafruit.com/downloads/pdf/adafruit-3-5-tft-featherwing.pdf)
+
+COMPARE TO:
+- [e-ink](https://learn.adafruit.com/adafruit-eink-display-breakouts) >>[specs](https://cdn-learn.adafruit.com/downloads/pdf/adafruit-eink-display-breakouts.pdf)
+
 ### power
 - [solar lithium charger](https://www.adafruit.com/product/390)
 - [solar panel](https://www.adafruit.com/product/3809)
@@ -61,8 +68,8 @@ Solar-powered GPS tracker that displays user's track, saving it to kml file on s
 ### SD
 
 #### basic gps polling
-- [ ] poll gps every 1 second & write to csv: p0,p1,p2,...
-- [ ] read from SD & display most recent 20 locations
+- [X] poll gps every n seconds & write to csv: p0,p1,p2,...
+- [X] read from SD & display most recent locations
 
 #### write kml
 - [ ] write & read from [kml](./kml.md) file instead of csv
@@ -77,7 +84,7 @@ Maybe another file on the SD card is a list of coords sorted such that those clo
 Or maybe your track on the SD card remains CSV and powering off or pressing a button formats it as KML, or maybe offload this to a python script run on the user's computer; this would be easier to parameterize.
 
 ### display gps track
-- [ ] translate gps coords to screen pos (user's current location is screen center)
-- [ ] filter current track gps coords to only points that are visible on screen
-- [ ] draw circle for all visible gps points
-- [ ] draw lines connecting all visible gps points
+- [X] translate gps coords to screen pos (user's current location is screen center)
+- [X] filter current track gps coords to only points that are visible on screen
+- [X] draw circle for all visible gps points
+- [X] draw lines connecting all visible gps points
