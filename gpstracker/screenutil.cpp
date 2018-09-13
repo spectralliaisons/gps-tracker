@@ -9,8 +9,8 @@
 #define SD_CS    5t
 #define TFT_RST -1
 
-#define BACKLIGHT_PIN 12 // analogWrite(12,0); // analogWrite(12,255);
-#define BACKLIGHT_LEVEL_HI 15 // 3
+#define BACKLIGHT_PIN 12
+#define BACKLIGHT_LEVEL_HI 255
 #define BACKLIGHT_LEVEL_LO 3
 
 #define NONE "??"
@@ -276,30 +276,7 @@ void ScreenUtil::drawDistancesFrom(geoloc currGeoloc)
     feetPerRing = 20;
   
   float numRings = maxFeet / feetPerRing;
-
-  for (int i = 1; i < numRings; i++)
-  {
-    float feet = i * feetPerRing;
-    float r = feetToPixels(feet);
-    tft.drawCircle(_window.cx, _window.cy, r, HX8357_WHITE);
-
-    // legend
-    if (i % 2 == 1)
-    {
-      tft.setCursor(_window.cx + feetToPixels(feet) + 1, _window.cy - 10);
-      tft.setTextSize(1);
-      tft.setTextColor(HX8357_WHITE); 
-
-      if (displayFeet())
-        tft.println(String(round(feet)) + "ft"); 
-      else
-      {
-        float mls = feet / FEET_PER_MILE;
-        tft.println(String(mls) + "mls");
-      }
-    }
-  }
-
+  
   // octants
   int numRays = 32;
   float angle = 2 * PI / numRays; // number of dividing lines in 180-deg
@@ -329,6 +306,35 @@ void ScreenUtil::drawDistancesFrom(geoloc currGeoloc)
 
   // clear center
   tft.fillCircle(_window.cx, _window.cy, feetToPixels(feetPerRing)-1, BG); 
+
+  // draw concentric circles indicating distance from center
+  for (int i = 1; i < numRings; i++)
+  {
+    float feet = i * feetPerRing;
+    float r = feetToPixels(feet);
+    tft.drawCircle(_window.cx, _window.cy, r, HX8357_WHITE);
+
+    // legend
+    if (i % 2 == 1)
+    {
+      // circles with legend are double-width
+      tft.drawCircle(_window.cx, _window.cy, r+1, BG);
+      tft.drawCircle(_window.cx, _window.cy, r+2, BG);
+      tft.drawCircle(_window.cx, _window.cy, r+3, HX8357_WHITE);
+
+      tft.setCursor(_window.cx + feetToPixels(feet) + 5, _window.cy - 10);
+      tft.setTextSize(1);
+      tft.setTextColor(HX8357_WHITE); 
+
+      if (displayFeet())
+        tft.println("<- " + String(round(feet)) + "ft"); 
+      else
+      {
+        float mls = feet / FEET_PER_MILE;
+        tft.println("<- " + String(mls) + "mls");
+      }
+    }
+  }
 }
 
 bool ScreenUtil::drawGeoloc(geoloc g0, geoloc g1, geoloc currGeoloc)
