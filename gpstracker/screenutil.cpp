@@ -342,7 +342,7 @@ bool ScreenUtil::drawGeoloc(geoloc g0, geoloc g1, geoloc currGeoloc)
 //    String latStr = String(pos.lat, GpsUtil::precision());
 //    String lngStr = String(pos.lng, GpsUtil::precision());
 //    String posStr = "(" + latStr + ", " + lngStr + ")";
-//    Serial.println("READ GPS POSITION FROM DISC: " + posStr);
+//    SDUtil::log("READ GPS POSITION FROM DISC: " + posStr);
     
     // only draw visible locations (gps coordinates that translate onto visible screen coords)
     point p0 = geolocToPoint(g0, currGeoloc);
@@ -391,7 +391,7 @@ point ScreenUtil::geolocToPoint(geoloc pos, geoloc centerPos)
   // we need to rotate 90deg ccw
   r += PI/2;
 
-//  Serial.println("positionToPoint ft " + String(ft) + " d " + String(d) + " r " + String(r) + " width " + String(_window.width) + " height " + String(_window.height) + " cx " + String(_window.cx) + " cy " + String(_window.cy));
+//  SDUtil::log("positionToPoint ft " + String(ft) + " d " + String(d) + " r " + String(r) + " width " + String(_window.width) + " height " + String(_window.height) + " cx " + String(_window.cx) + " cy " + String(_window.cy));
   
   point p;
   p.x = _window.cx + d * sin(r);

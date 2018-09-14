@@ -26,15 +26,15 @@ geoloc Pythagoras::stringToGeoloc(String str)
   String lngStr = str.substring(0, firstComma);
   String latStr = str.substring(firstComma+1, secondComma);
 
-//  Serial.println("#1S: " + latStr);
-//  Serial.println("#2S: " + lngStr);
+//  SDUtil::log("#1S: " + latStr);
+//  SDUtil::log("#2S: " + lngStr);
 
   geoloc p;
   p.lat = latStr.toFloat();
   p.lng = lngStr.toFloat();
 
-//  Serial.println("#1F: " + String(p.lat, GpsUtil::precision()));
-//  Serial.println("#2F: " + String(p.lng, GpsUtil::precision()));
+//  SDUtil::log("#1F: " + String(p.lat, GpsUtil::precision()));
+//  SDUtil::log("#2F: " + String(p.lng, GpsUtil::precision()));
   
   return p;
 }

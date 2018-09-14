@@ -8,11 +8,21 @@
 
 #define FILENAME_LENGTH 7 // num chars not including suffix
 
+// for debugging, all calls to print to console are logged on SD card
+#define LOG_PREFIX "LOG"
+
+String SDUtil::_currLog = "";
+
 String SDUtil::init()
 {
   // see if the card is present and can be initialized:
   if (!SD.begin(SD_CHIP)) 
     return "ERROR: SD CARD FAILED OR NOT PRESENT. ";
+
+  _currLog = increment(LOG_PREFIX);
+  remove(_currLog);
+
+  log("SD initialized.");
   
   return "SD initialized.";
 }
@@ -44,7 +54,7 @@ String SDUtil::increment(String prefix)
     checkFilename = prefix + id + suffix;
   } while (SD.exists(checkFilename));
 
-  Serial.println("SDUtil creating file: " + checkFilename);
+  log("SDUtil creating file: " + checkFilename);
 
   return checkFilename;
 }
@@ -52,12 +62,26 @@ String SDUtil::increment(String prefix)
 void SDUtil::remove(String file)
 {
   if (SD.remove(file))
-    Serial.println("deleted existing file: " + file);
+    log("deleted existing file: " + file);
   else
-    Serial.println("could not find existing file: " + file); 
+    log("could not find existing file: " + file); 
 }
 
-void SDUtil::print(String file, String dataString, bool newLine)
+/**
+ * All calls to log go through here so we have logs even when not connected to USB to Arduino IDE
+ */
+void SDUtil::log(String dataString)
+{
+  Serial.println(dataString);
+  
+  String dat = String(millis()) + "::" + dataString;
+  write(_currLog, dat, true, false);
+}
+
+/**
+ * Write a line to a file
+ */
+void SDUtil::write(String file, String dataString, bool newLine, bool thenLog)
 {
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
@@ -73,6 +97,9 @@ void SDUtil::print(String file, String dataString, bool newLine)
     
     dataFile.close();
 
-    Serial.println("SDUtil::print::" + String(dataFile.name()) + "::" + dataString);
+    if (thenLog)
+    {
+      log("SDUtil::write::" + String(dataFile.name()) + "::" + dataString);
+    }
   }
 }

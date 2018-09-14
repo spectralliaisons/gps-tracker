@@ -24,7 +24,7 @@ bool Timer::update()
     
     reset();
 
-//    Serial.println("Timer::" + _id + " fired");
+   // SDUtil::log("Timer::" + _id + " fired");
 
     return true;
   }

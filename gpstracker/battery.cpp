@@ -26,7 +26,7 @@ Battery::Battery(int pin)
     SDUtil::remove(_currLog);
 
     // print headers
-    SDUtil::print(_currLog, "secs,voltage,percent", true);
+    SDUtil::write(_currLog, "secs,voltage,percent", true, true);
   }
 
   _logTimer = new Timer("LOG_BATTERY", LOG_DELAY);
@@ -58,7 +58,7 @@ String Battery::displayCharge()
       // log voltage with timestamp
       int secsSinceLaunch = (millis() - _start) / 1000;
       String dataString = String(secsSinceLaunch) + "," + String(v) + "," + String(_percentCharge);
-      SDUtil::print(_currLog, dataString, true);
+      SDUtil::write(_currLog, dataString, true, true);
     }
   }
 	

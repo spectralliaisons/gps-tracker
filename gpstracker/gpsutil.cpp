@@ -37,7 +37,7 @@ GpsUtil::GpsUtil()
 	GPS.sendCommand(PGCMD_ANTENNA);
 
 	// // Ask for firmware version
-	GPSSerial.println(PMTK_Q_RELEASE);
+	// GPSSDUtil::log(PMTK_Q_RELEASE);
 
   _timer = new Timer("LOG_GPS", REFRESH_MS);
 }
@@ -70,8 +70,8 @@ bool GpsUtil::update()
 	// if a sentence is received, we can check the checksum, parse it...
 	if (GPS.newNMEAreceived())
 	{
-//  	Serial.println("GPS.newNMEAreceived YES");
-//  	Serial.println(GPS.lastNMEA());
+//  	SDUtil::log("GPS.newNMEAreceived YES");
+//  	SDUtil::log(GPS.lastNMEA());
   
   	if (GPS.parse(GPS.lastNMEA()))
   	{
@@ -83,27 +83,27 @@ bool GpsUtil::update()
 //          Serial.print(GPS.hour, DEC); Serial.print(':');
 //          Serial.print(GPS.minute, DEC); Serial.print(':');
 //          Serial.print(GPS.seconds, DEC); Serial.print('.');
-//          Serial.println(GPS.milliseconds);
+//          SDUtil::log(GPS.milliseconds);
 //          Serial.print("Date: ");
 //          Serial.print(GPS.day, DEC); Serial.print('/');
 //          Serial.print(GPS.month, DEC); Serial.print("/20");
-//          Serial.println(GPS.year, DEC);
+//          SDUtil::log(GPS.year, DEC);
 //          Serial.print("Fix: "); Serial.print((int)GPS.fix);
-//          Serial.print(" quality: "); Serial.println((int)GPS.fixquality);
+//          Serial.print(" quality: "); SDUtil::log((int)GPS.fixquality);
   
           if (GPS.fix)
           {
-//            Serial.println();
-//            Serial.println("------------------------ !!! YES WE RECEIVED A FIX !!! ------------------------");
+//            SDUtil::log();
+//            SDUtil::log("------------------------ !!! YES WE RECEIVED A FIX !!! ------------------------");
 //            Serial.print("FIX Location: ");
 //            Serial.print(GPS.latitude, 4); Serial.print(GPS.lat);
 //            Serial.print(", ");
-//            Serial.print(GPS.longitude, 4); Serial.println(GPS.lon);
-//            Serial.print("FIX Speed (knots): "); Serial.println(GPS.speed);
-//            Serial.print("FIX Angle: "); Serial.println(GPS.angle);
-//            Serial.print("FIX Altitude: "); Serial.println(GPS.altitude);
-//            Serial.print("FIX Satellites: "); Serial.println((int)GPS.satellites);
-//            Serial.println("-------------------------------------------------------------------------------");
+//            Serial.print(GPS.longitude, 4); SDUtil::log(GPS.lon);
+//            Serial.print("FIX Speed (knots): "); SDUtil::log(GPS.speed);
+//            Serial.print("FIX Angle: "); SDUtil::log(GPS.angle);
+//            Serial.print("FIX Altitude: "); SDUtil::log(GPS.altitude);
+//            Serial.print("FIX Satellites: "); SDUtil::log((int)GPS.satellites);
+//            SDUtil::log("-------------------------------------------------------------------------------");
 
 //            logCurrentPosition();
           }
@@ -123,5 +123,5 @@ void GpsUtil::logCurrentGeoloc()
   String latStr = String(GPS.latitudeDegrees, GpsUtil::precision());
   String lngStr = String(GPS.longitudeDegrees, GpsUtil::precision());
   String posLn = " " + lngStr + "," + latStr + ",0"; // TODO: what's up with the ",0"?
-  SDUtil::print(_currLog, posLn);
+  SDUtil::write(_currLog, posLn, false, true);
 }

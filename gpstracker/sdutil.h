@@ -9,7 +9,10 @@ class SDUtil
     static String init();
     static String increment(String prefix);
     static void remove(String file);
-    static void print(String file, String dataString, bool newLine=false);
+    static void write(String file, String dataString, bool newLine, bool thenLog);
+    static void log(String dataString);
+   private:
+   	static String _currLog;
 };
 
 #endif
