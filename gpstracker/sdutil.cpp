@@ -1,30 +1,80 @@
 #include "Arduino.h"
 #include "sdutil.h"
 
+// Date and time functions using a DS1307 RTC connected via I2C and Wire lib
+#include <Wire.h>
+#include "RTClib.h"
+
+// real-time clock
+RTC_Millis rtc;
+
 // log battery usage to SD
 #include <SD.h>
 
 #define SD_CHIP 4
 
 #define FILENAME_LENGTH 7 // num chars not including suffix
+#define MAX_DIRECTORY_NAME_LENGTH 8 // num chars not including final "/"
 
 // for debugging, all calls to print to console are logged on SD card
 #define LOG_PREFIX "LOG"
 
 String SDUtil::_currLog = "";
+String SDUtil::_currDirectory = "";
 
 String SDUtil::init()
 {
   // see if the card is present and can be initialized:
   if (!SD.begin(SD_CHIP)) 
-    return "ERROR: SD CARD FAILED OR NOT PRESENT. ";
+  {
+    Serial.println("ERROR: SD CARD FAILED OR NOT PRESENT.");
+    return "ERROR: SD CARD FAILED OR NOT PRESENT.";
+  }
+
+  // following line sets the RTC to the date & time this sketch was compiled
+  rtc.begin(DateTime(F(__DATE__), F(__TIME__)));
+
+  // create new directory for this run's logs
+  String err = makeNewDirectory();
+  if (err.length())
+    return err;
 
   _currLog = increment(LOG_PREFIX);
   remove(_currLog);
 
-  log("SD initialized.");
+  log("SD initialized at UTC time: " + String(rtc.now().unixtime()) + ". Created log file: " + _currLog);
   
   return "SD initialized.";
+}
+
+/**
+ * Create directories for logs. First directory is stringified yearmonthday, containing directory of incrementing number.
+ */
+String SDUtil::makeNewDirectory()
+{
+  DateTime now = rtc.now();
+  
+  String year = String(now.year());
+  String month = String(now.month());
+  if (month.length() < 2)
+    month = "0" + month;
+  String day = String(now.day());
+  if (day.length() < 2)
+    day = "0" + day;
+
+  String dir0 = year + month + day;
+  String dir1 = padFilename("", MAX_DIRECTORY_NAME_LENGTH, "/");
+  _currDirectory = dir0 + "/" + dir1;
+  
+  if (SD.mkdir(_currDirectory))
+  {
+    return "";
+  }
+  else
+  {
+    Serial.println("ERROR: Could not create directory for logs.");
+    return "ERROR: Could not create directory for logs.";
+  }
 }
 
 /**
@@ -32,10 +82,12 @@ String SDUtil::init()
  */
 String SDUtil::increment(String prefix)
 {
-  String suffix = ".TXT";
+  return _currDirectory + padFilename(prefix, FILENAME_LENGTH, ".TXT");
+}
 
+String SDUtil::padFilename(String prefix, int maxLength, String suffix)
+{
   int n = 0;
-  bool unique = true;
   String checkFilename = "";
   
   do
@@ -44,7 +96,7 @@ String SDUtil::increment(String prefix)
     String nstr = String(++n);
 
     // pad prefix with zeros so filename without extension is FILENAME_LENGTH
-    int padZeros = (FILENAME_LENGTH - prefix.length()) - nstr.length();
+    int padZeros = (maxLength - prefix.length()) - nstr.length();
 
     // (will not pad if no room in filename length for padding)
     for (int i = 0; i < padZeros; i++)
@@ -54,7 +106,7 @@ String SDUtil::increment(String prefix)
     checkFilename = prefix + id + suffix;
   } while (SD.exists(checkFilename));
 
-  log("SDUtil creating file: " + checkFilename);
+  log("SDUtil creating: " + checkFilename);
 
   return checkFilename;
 }
@@ -74,7 +126,7 @@ void SDUtil::log(String dataString)
 {
   Serial.println(dataString);
   
-  String dat = String(millis()) + "::" + dataString;
+  String dat = String(String(rtc.now().unixtime())) + "::" + dataString;
   write(_currLog, dat, true, false);
 }
 

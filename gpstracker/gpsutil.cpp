@@ -61,24 +61,25 @@ String GpsUtil::getFilepath()
   return _currLog;
 }
 
+bool GpsUtil::wasSentenceReceived()
+{
+  // ensure GPS is read
+  char c = GPS.read();
+
+  // if a sentence is received, we can check the checksum, parse it...
+  if (GPS.newNMEAreceived())
+    return GPS.parse(GPS.lastNMEA());
+}
+
 // read GPS and return true if new sentence received
 bool GpsUtil::update()
 {
-	// ensure GPS is read
-	char c = GPS.read();
-
-	// if a sentence is received, we can check the checksum, parse it...
-	if (GPS.newNMEAreceived())
-	{
-//  	SDUtil::log("GPS.newNMEAreceived YES");
-//  	SDUtil::log(GPS.lastNMEA());
-  
-  	if (GPS.parse(GPS.lastNMEA()))
-  	{
-  		if (_timer->update())
-  		{
-        if (LOG)
-        {
+	if (wasSentenceReceived())
+  {
+    if (_timer->update())
+    {
+      if (LOG)
+      {
 //          Serial.print("\nTime: ");
 //          Serial.print(GPS.hour, DEC); Serial.print(':');
 //          Serial.print(GPS.minute, DEC); Serial.print(':');
@@ -90,9 +91,9 @@ bool GpsUtil::update()
 //          SDUtil::log(GPS.year, DEC);
 //          Serial.print("Fix: "); Serial.print((int)GPS.fix);
 //          Serial.print(" quality: "); SDUtil::log((int)GPS.fixquality);
-  
-          if (GPS.fix)
-          {
+
+        if (GPS.fix)
+        {
 //            SDUtil::log();
 //            SDUtil::log("------------------------ !!! YES WE RECEIVED A FIX !!! ------------------------");
 //            Serial.print("FIX Location: ");
@@ -106,13 +107,12 @@ bool GpsUtil::update()
 //            SDUtil::log("-------------------------------------------------------------------------------");
 
 //            logCurrentPosition();
-          }
         }
-        
-  			return true;
-  		}
-  	}
-	}
+      }
+      
+      return true;
+    }
+  }
 
 	return false;
 }

@@ -14,6 +14,7 @@ class GpsUtil
     String getFilepath();
     static int precision();
   private:
+    bool wasSentenceReceived();
     Timer *_timer;
     String _currLog;
     void logCurrentGeoloc();
