@@ -3,6 +3,16 @@
 
 #define METERS_TO_FEET 0.3048
 
+geoloc Pythagoras::invalidGeoloc()
+{
+  return {1/0, 1/0};
+}
+
+String Pythagoras::geolocToString(geoloc g)
+{
+  return "{lat: " + String(g.lat) + ", lng: " + String(g.lng) + "}";
+}
+
 float Pythagoras::cmToFeet(float cm)
 {
   return cm * 0.032808;

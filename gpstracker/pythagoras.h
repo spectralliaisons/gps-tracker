@@ -18,6 +18,8 @@ struct geoloc
 class Pythagoras
 {
   public:
+    static geoloc invalidGeoloc();
+    static String geolocToString(geoloc g);
     static float cmToFeet(float cm);
     static float degToRad(float deg);
     static float scale(float x0, float x1, float y0, float y1, float x2);

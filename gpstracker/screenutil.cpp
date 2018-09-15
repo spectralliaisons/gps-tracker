@@ -182,6 +182,8 @@ void ScreenUtil::updateGPSDisplay(String trackFilepath, String mapFilepath)
   // get curr location (last on file)
   geoloc currGeoloc = findCurrGeoloc(trackFilepath);
 
+  SDUtil::log("currGeoloc: " + Pythagoras::geolocToString(currGeoloc));
+
   drawDistancesFrom(currGeoloc);
 
   drawGPSTrack(trackFilepath, currGeoloc);
@@ -202,9 +204,7 @@ void ScreenUtil::drawGPSTrack(String filePath, geoloc currGeoloc)
     return;
 
   // geoloc one-back (when parsing)
-  geoloc g1;
-  g1.lat = 1/0; // stupid
-  g1.lng = 1/0;
+  geoloc g1 = Pythagoras::invalidGeoloc();
 
   int numPoints = 0;
   int numPointsOnscreen = 0;
@@ -226,12 +226,16 @@ void ScreenUtil::drawGPSTrack(String filePath, geoloc currGeoloc)
   }
   file.close();
 
-  showMsg("Rendered " + String(numPointsOnscreen) + "/" + String(numPoints) + " locations in " + String(millis() - t0) + "ms.");
+  SDUtil::log("Rendered " + String(numPointsOnscreen) + "/" + String(numPoints) + " locations in " + String(millis() - t0) + "ms.");
 }
 
 geoloc ScreenUtil::findCurrGeoloc(String filePath)
 {
+  uint32_t t0 = millis();
+  
   File file = SD.open(filePath);
+  if (!file)
+    return Pythagoras::invalidGeoloc();
   
   String lastLine;
   geoloc currGeoloc;
@@ -242,7 +246,11 @@ geoloc ScreenUtil::findCurrGeoloc(String filePath)
   }
   file.close();
   
-  return Pythagoras::stringToGeoloc(lastLine);
+  geoloc g = Pythagoras::stringToGeoloc(lastLine);
+
+  SDUtil::log("found current geoloc in " + String(millis() - t0) + "ms.");
+
+  return g;
 }
 
 float ScreenUtil::maxDisplayableFeet()
@@ -410,9 +418,7 @@ point ScreenUtil::geolocToPoint(geoloc pos, geoloc centerPos)
 
 geoloc ScreenUtil::pointToGeoloc(point pt)
 {
-    geoloc g;
-    g.lat = 1/0; // TODO
-    g.lng = 1/0;
+    geoloc g = Pythagoras::invalidGeoloc();
     
     return g;
 }

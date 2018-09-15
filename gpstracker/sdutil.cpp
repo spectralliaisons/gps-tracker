@@ -124,9 +124,10 @@ void SDUtil::remove(String file)
  */
 void SDUtil::log(String dataString)
 {
-  Serial.println(dataString);
-  
   String dat = String(String(rtc.now().unixtime())) + "::" + dataString;
+  
+  Serial.println(dat);
+  
   write(_currLog, dat, true, false);
 }
 
