@@ -6,9 +6,8 @@
 #define GPSSerial Serial1
 #define REFRESH_MS 2000
 
-#define LOG_GPS true
-#define LOG_PREFIX "TRK"
-#define DEBUG_LOG_NAME "GPSTEST.TXT"
+#define TRACK_NAME "TRK0000.TXT"
+#define MAP_NAME "GPSTEST.TXT"
 
 #define LOG true
 
@@ -17,12 +16,10 @@ Adafruit_GPS GPS(&GPSSerial);
 
 GpsUtil::GpsUtil()
 {
-  if (LOG_GPS)
-  {
-//    _currLog = SDUtil::increment(LOG_PREFIX);
-//    SDUtil::remove(_currLog);
-    _currLog = DEBUG_LOG_NAME;
-  }
+  // TODO: really use a single track log?
+  _currTrack = TRACK_NAME; // SDUtil::increment(LOG_PREFIX);
+  // TODO: is there an efficient way to support multiple maps?
+  _currMap = MAP_NAME;
 
 	// default NMEA GPS baud
 	GPS.begin(9600);
@@ -56,9 +53,14 @@ int GpsUtil::precision()
   return 10;
 }
 
-String GpsUtil::getFilepath()
+String GpsUtil::getTrackFilepath()
 {
-  return _currLog;
+  return _currTrack;
+}
+
+String GpsUtil::getMapFilepath()
+{
+  return _currMap;
 }
 
 bool GpsUtil::wasSentenceReceived()
@@ -106,7 +108,7 @@ bool GpsUtil::update()
 //            Serial.print("FIX Satellites: "); SDUtil::log((int)GPS.satellites);
 //            SDUtil::log("-------------------------------------------------------------------------------");
 
-//            logCurrentPosition();
+            logCurrentGeoloc();
         }
       }
       
@@ -123,5 +125,5 @@ void GpsUtil::logCurrentGeoloc()
   String latStr = String(GPS.latitudeDegrees, GpsUtil::precision());
   String lngStr = String(GPS.longitudeDegrees, GpsUtil::precision());
   String posLn = " " + lngStr + "," + latStr + ",0"; // TODO: what's up with the ",0"?
-  SDUtil::write(_currLog, posLn, false, true);
+  SDUtil::write(_currTrack, posLn, false, true);
 }

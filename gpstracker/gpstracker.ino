@@ -71,16 +71,19 @@ void loop()
   bool newFix = gps->update();
 
   // try to get track from sd card or show error
-  String gpsTrack = gps->getFilepath();
+  String gpsTrack = gps->getTrackFilepath();
 //  if (!screen->updateSDStatus(gpsTrack))
 //    SDUtil::init(); // try to find it again (e.g. if user inserts)
+
+  String gpsMap = gps->getMapFilepath();
 
   if (screenCmd == Screen_drawMap)
   {
     // GPS text summary
     screen->updateGPSText(gps->getGPS());
   
-    // GPS track display (map)
-    screen->updateGPSMap(gpsTrack);  
+    // GPS display
+//    screen->updateGPSDisplay(gpsTrack, gpsMap);
+    screen->updateGPSDisplay(gpsMap, gpsMap);  
   }
 }

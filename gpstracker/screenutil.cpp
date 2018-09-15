@@ -1,6 +1,7 @@
 #include "Arduino.h"
 #include "screenutil.h"
 #include "pythagoras.h"
+#include "sdutil.h"
 
 // add other definitions from File > Examples > Adafruit HX8357 Library to support other boards
 #define STMPE_CS 6
@@ -122,6 +123,8 @@ void ScreenUtil::println(int x, int y, int size, int color, String str, int bg)
   tft.setTextSize(size);
   tft.setTextColor(color); 
   tft.println(str);
+
+  SDUtil::log("ScreenUtil::println::" + str);
 }
 
 bool ScreenUtil::updateSDStatus(String filePath)
@@ -172,33 +175,41 @@ void ScreenUtil::updateGPSText(Adafruit_GPS gps)
 
 // DISPLAY GPS COORDS
 
-void ScreenUtil::updateGPSMap(String filePath)
+void ScreenUtil::updateGPSDisplay(String trackFilepath, String mapFilepath)
 {
-  File file = SD.open(filePath);
-  
-  if (!file)
-    return;
-
-  // clear screen where map appears
-//  tft.fillRect(_window.x, _window.y, _window.width, _window.height, BG);
-
   uint32_t t0 = millis();
   
-  int numPoints = 0;
-  int numPointsOnscreen = 0;
-
   // get curr location (last on file)
-  geoloc currGeoloc = findCurrGeoloc(filePath);
+  geoloc currGeoloc = findCurrGeoloc(trackFilepath);
 
   drawDistancesFrom(currGeoloc);
+
+  drawGPSTrack(trackFilepath, currGeoloc);
+  drawGPSTrack(mapFilepath, currGeoloc);
+
+  showMsg("Updated GPS display in " + String(millis() - t0) + "ms.");
+
+  // screen sleeps after while of no interaction in map mode
+  _menu->startMenuTimer();
+}
+
+void ScreenUtil::drawGPSTrack(String filePath, geoloc currGeoloc)
+{
+  uint32_t t0 = millis();
+  
+  File file = SD.open(filePath);
+  if (!file)
+    return;
 
   // geoloc one-back (when parsing)
   geoloc g1;
   g1.lat = 1/0; // stupid
   g1.lng = 1/0;
 
+  int numPoints = 0;
+  int numPointsOnscreen = 0;
+
   // now go through again so we can compare all positions to curr pos for relative placement
-  file = SD.open(filePath);
   while (file.available()) 
   {
     String line = file.readStringUntil(' ');
@@ -216,9 +227,6 @@ void ScreenUtil::updateGPSMap(String filePath)
   file.close();
 
   showMsg("Rendered " + String(numPointsOnscreen) + "/" + String(numPoints) + " locations in " + String(millis() - t0) + "ms.");
-
-  // screen sleeps after while of no interaction in map mode
-  _menu->startMenuTimer();
 }
 
 geoloc ScreenUtil::findCurrGeoloc(String filePath)

@@ -11,12 +11,14 @@ class GpsUtil
   	GpsUtil();
   	bool update();
   	Adafruit_GPS getGPS();
-    String getFilepath();
+    String getTrackFilepath();
+    String getMapFilepath();
     static int precision();
   private:
     bool wasSentenceReceived();
     Timer *_timer;
-    String _currLog;
+    String _currTrack;
+    String _currMap;
     void logCurrentGeoloc();
 };
 

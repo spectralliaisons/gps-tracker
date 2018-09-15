@@ -42,7 +42,8 @@ class ScreenUtil
     void updateBatteryDisplay(String displayCharge, bool isLow);
     void println(int x, int y, int size, int color, String str, int bg=BG); // HX8357_BLACK // bg = HX8357_BLUE for debugging to see "text field" area
     void updateGPSText(Adafruit_GPS gps);
-    void updateGPSMap(String filePath);
+    void updateGPSDisplay(String trackFilepath, String mapFilepath);
+    void drawGPSTrack(String filePath, geoloc currGeoloc);
     bool updateSDStatus(String filePath);
    
    private:
