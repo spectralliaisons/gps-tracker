@@ -1,6 +1,14 @@
 # gpstracker
 Solar-powered GPS tracker that displays user's track, saving it to kml file on sd card. Running on [Adafruit Feather M0 Adalogger](https://www.adafruit.com/product/2796).
 
+## SD Card file organization:
+(as of 2018.09.15) 
+Current track is named "TRK0000.TXT".
+Current map is named "GPSTEST.TXT".
+Upon board initialization, a directory is created with the name of the current calendar day e.g. September 9th, 2018 is 20180909/. Within this directory, each board initialization creates an indexed folder e.g. "00000001/". Within this folder are indexed logs:
+- "BAT0001.TXT" : a log of timestamped battery voltage (csv)
+- "LOG0001.TXT" : a log in case board crashes; what would be console output when board is connected to Arduino IDE is logged here.
+
 ## proof of concept: print gps coordinates
 ![an image examplar](./examples/proofofconcept1.jpg)
 
@@ -18,6 +26,7 @@ Solar-powered GPS tracker that displays user's track, saving it to kml file on s
 - <del>[ ] can scroll touchscreen by 'dragging' (WON'T DO: Adafruit TFT display draws too slowly for this!)</del>
 - [X] can zoom in/out (display units change from feet to miles when zoomed out sufficiently)
 - [X] concentric circles centered on user location denoting distances
+- [ ] SD card not required for displaying battery and GPS data
 
 ## materials
 
@@ -70,6 +79,7 @@ COMPARE TO:
 #### basic gps polling
 - [X] poll gps every n seconds & write to csv: p0,p1,p2,...
 - [X] read from SD & display most recent locations
+- [ ] can insert / remover SD card while board is running without a crash
 
 #### write kml
 - [ ] write & read from [kml](./kml.md) file instead of csv
