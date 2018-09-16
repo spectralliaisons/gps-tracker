@@ -4,26 +4,19 @@
 #include "sdutil.h"
 
 // This is calibration data for the raw touch data to the screen coordinates
-#define TS_MINX 300
-#define TS_MAXX 3500
-#define TS_MINY 300
-#define TS_MAXY 3500
-
-#define MIN_ZOOM 1
-#define MAX_ZOOM 10
-
-#define DEF_FEET_TO_PIXELS 0.05
+#define TS_MIN 300
+#define TS_MAX 3500
 
 // Zoomed all the way in
-#define MIN_FEET_TO_PIXELS 0.05
+#define MIN_DISPLAYABLE_FEET 50 // map window width is 50 feet
 
 // Zoomed all the way out
-#define MAX_FEET_TO_PIXELS 0.50
+#define MAX_DISPLAYABLE_FEET (25 * 5280) // map window width is 25 miles 
 
-#define ZOOM_STEP_SIZE 0.05
+// Default zoom
+#define DEF_DISPLAYABLE_FEET 1136.87
 
-// screen off of untouched for long enough
-#define DELAY_SCREEN_OFF 7000
+#define ZOOM_STEP 1.25
 
 #define STMPE_CS 6
 Adafruit_STMPE610 touch = Adafruit_STMPE610(STMPE_CS);
@@ -41,7 +34,7 @@ Menu::Menu()
   _isTouched = false;
   _lastTouchState = false;
 
-  _currFeetToPixels = DEF_FEET_TO_PIXELS;
+  _currMaxDisplayableFeet = DEF_DISPLAYABLE_FEET;
 }
 
 /**
@@ -171,19 +164,19 @@ bool Menu::detectZoomOut()
 
 void Menu::zoomIn()
 {
-  _currFeetToPixels = max(MIN_FEET_TO_PIXELS, _currFeetToPixels - ZOOM_STEP_SIZE);
-  SDUtil::log("ZOOM IN: " + String(_currFeetToPixels));
+  _currMaxDisplayableFeet = max(MIN_DISPLAYABLE_FEET, _currMaxDisplayableFeet / ZOOM_STEP);
+  SDUtil::log("Menu::zoomIn() _currMaxDisplayableFeet: " + String(_currMaxDisplayableFeet));
 }
 
 void Menu::zoomOut()
 {
-  _currFeetToPixels = min(MAX_FEET_TO_PIXELS, _currFeetToPixels + ZOOM_STEP_SIZE);
-  SDUtil::log("ZOOM OUT: " + String(_currFeetToPixels));
+  _currMaxDisplayableFeet = min(MAX_DISPLAYABLE_FEET, _currMaxDisplayableFeet * ZOOM_STEP);
+  SDUtil::log("Menu::zoomOut() _currMaxDisplayableFeet: " + String(_currMaxDisplayableFeet));
 }
 
-float Menu::currFeetToPixels()
+float Menu::currMaxDisplayableFeet()
 {
-  return _currFeetToPixels;
+  return _currMaxDisplayableFeet;
 }
 
 /**
@@ -204,8 +197,8 @@ point Menu::getTouchPoint()
     // flipping x, y for landscape orientation
     // 0,0 = top left
     // 1,1 = bottom right
-    touchPoint.y = Pythagoras::scale(TS_MAXX, TS_MINX, 0, 1, x);
-    touchPoint.x = Pythagoras::scale(TS_MINY, TS_MAXY, 0, 1, y);
+    touchPoint.y = Pythagoras::scale(TS_MAX, TS_MIN, 0, 1, x);
+    touchPoint.x = Pythagoras::scale(TS_MIN, TS_MAX, 0, 1, y);
 
 //    SDUtil::log("touch.readData: x: " + String(touchPoint.x) + ", y: " + String(touchPoint.y));
   }

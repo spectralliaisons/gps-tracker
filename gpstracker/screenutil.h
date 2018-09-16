@@ -63,13 +63,12 @@ class ScreenUtil
     geoloc findCurrGeoloc(String filePath);
     void drawDistancesFrom(geoloc currGeoloc);
     bool displayFeet();
-    float maxDisplayableFeet();
     bool drawGeoloc(geoloc g0, geoloc g1, geoloc currGeoloc);
     bool pointIsOnscreen(point p);
     point geolocToPoint(geoloc pos, geoloc centerPos);
     geoloc pointToGeoloc(point pt);
 
-    float feetToPixels(float ft);
+    float feetToPixels(float feet);
     float pixelsToFeet(float px);
 };
 

@@ -35,6 +35,8 @@ ScreenUtil::ScreenUtil(String initMsg)
   tft.begin(HX8357D);
   tft.setRotation(1);
   tft.fillScreen(BG);
+
+  SDUtil::log("screen initialized. width: " + String(tft.width()) + " height: " + String(tft.height()));
   
   analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_LO);
 
@@ -245,14 +247,31 @@ geoloc ScreenUtil::findCurrGeoloc(String filePath)
   return g;
 }
 
-float ScreenUtil::maxDisplayableFeet()
+float ScreenUtil::feetToPixels(float feet)
 {
-  return pixelsToFeet(_window.width / 2);
+  // _window.width                       px
+  // -------------                     = -------------
+  // _menu->currMaxDisplayableFeet()     feet
+  //
+  // => px * _menu->currMaxDisplayableFeet() = feet * _window.width
+  // => px = (feet * _window.width) / _menu->currMaxDisplayableFeet()
+  return (feet * _window.width) / _menu->currMaxDisplayableFeet();
+}
+
+float ScreenUtil::pixelsToFeet(float px)
+{
+  // _window.width                       px
+  // -------------                     = -------------
+  // _menu->currMaxDisplayableFeet()     feet
+  //
+  // => feet * _window.width = px * _menu->currMaxDisplayableFeet()
+  // => feet = (px * _menu->currMaxDisplayableFeet()) / _window.width
+  return (px * _menu->currMaxDisplayableFeet()) / _window.width;
 }
 
 bool ScreenUtil::displayFeet()
 {
-  return maxDisplayableFeet() < MIN_DISPLAYED_FEET;
+  return _menu->currMaxDisplayableFeet() < MIN_DISPLAYED_FEET;
 }
 
 void ScreenUtil::updateZoomDisplay()
@@ -268,22 +287,8 @@ void ScreenUtil::updateZoomDisplay()
  */
 void ScreenUtil::drawDistancesFrom(geoloc currGeoloc)
 {
-  float maxFeet = maxDisplayableFeet();
-  
-  // ring sizes depend on zoom
-  float feetPerRing;
-  if (!displayFeet())
-    feetPerRing = FEET_PER_MILE / 4;
-  else if (maxFeet >= 1500)
-    feetPerRing = 500;
-  else if (maxFeet >= 500)
-    feetPerRing = 250;
-  else if (maxFeet >= 250)
-    feetPerRing = 50;
-  else
-    feetPerRing = 20;
-  
-  float numRings = maxFeet / feetPerRing;
+  float numRings = 6;
+  float feetPerRing = (_menu->currMaxDisplayableFeet() / 2) / numRings;
   
   // octants
   int numRays = 32;
@@ -332,14 +337,14 @@ void ScreenUtil::drawDistancesFrom(geoloc currGeoloc)
 
       tft.setCursor(_window.cx + feetToPixels(feet) + 5, _window.cy - 10);
       tft.setTextSize(1);
-      tft.setTextColor(HX8357_WHITE); 
+      tft.setTextColor(HX8357_YELLOW); 
 
       if (displayFeet())
-        tft.println("<- " + String(round(feet)) + "ft"); 
+        tft.println("<-" + String(round(feet)) + "f"); 
       else
       {
         float mls = feet / FEET_PER_MILE;
-        tft.println("<- " + String(mls) + "mls");
+        tft.println("<-" + String(mls) + "m");
       }
     }
   }
@@ -358,13 +363,13 @@ bool ScreenUtil::drawGeoloc(geoloc g0, geoloc g1, geoloc currGeoloc)
     if (!pointIsOnscreen(p0))
       return false;
     else
-      tft.fillCircle(p0.x, p0.y, 2, HX8357_BLUE);
+      tft.fillCircle(p0.x, p0.y, 3, HX8357_YELLOW);
 
     // assume we already drew a dot at this location because it was the last one we parsed!
     point p1 = geolocToPoint(g1, currGeoloc);
 
     if (pointIsOnscreen(p1))
-      tft.drawLine(p1.x, p1.y, p0.x, p0.y, HX8357_WHITE); 
+      tft.drawLine(p1.x, p1.y, p0.x, p0.y, HX8357_YELLOW); 
 
     return true;
 }
@@ -372,16 +377,6 @@ bool ScreenUtil::drawGeoloc(geoloc g0, geoloc g1, geoloc currGeoloc)
 bool ScreenUtil::pointIsOnscreen(point p)
 {
   return (p.x >= _window.x && p.x <= _window.x + _window.width) && (p.y >= _window.y && p.y <= _window.y + _window.height);
-}
-
-float ScreenUtil::feetToPixels(float ft)
-{
-  return ft * _menu->currFeetToPixels();
-}
-
-float ScreenUtil::pixelsToFeet(float px)
-{
-  return px / _menu->currFeetToPixels();
 }
 
 /**

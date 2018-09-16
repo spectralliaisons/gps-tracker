@@ -27,7 +27,7 @@ class Menu
     
     menu_command getMenuCommand();
     
-    float currFeetToPixels();
+    float currMaxDisplayableFeet();
    
    private:
     menu_state _state;
@@ -35,7 +35,7 @@ class Menu
     float _touchOnX;
     float _touchOffX;
 
-    float _currFeetToPixels;
+    float _currMaxDisplayableFeet;
     
     bool _isTouched;
     bool _lastTouchState;
