@@ -57,8 +57,6 @@ screen_command ScreenUtil::getScreenCommand()
   switch (menuCmd)
   {
     case Menu_sleep:
-      SDUtil::log("ScreenUtil menu sleep");
-      
       setBacklightAndClearScreen(BACKLIGHT_LEVEL_LO);
       
       showMsg("Swipe right to wake/sleep.");
@@ -67,20 +65,10 @@ screen_command ScreenUtil::getScreenCommand()
       break;
       
     case Menu_zoom:
-      SDUtil::log("ScreenUtil menu zoom");
+    case Menu_wake:
       setBacklightAndClearScreen(BACKLIGHT_LEVEL_HI);
       
       updateZoomDisplay();
-
-      screenCmd = Screen_drawMap;
-      break;
-    
-    case Menu_wake:
-      SDUtil::log("ScreenUtil menu wake");
-      
-      setBacklightAndClearScreen(BACKLIGHT_LEVEL_HI);
-      
-      showMsg("Rendering track...");
 
       screenCmd = Screen_drawMap;
       break;
@@ -131,7 +119,7 @@ void ScreenUtil::println(int x, int y, int size, int color, String str, int bg)
   tft.setTextColor(color); 
   tft.println(str);
 
-//  SDUtil::log("ScreenUtil::println::" + str);
+  SDUtil::log("ScreenUtil::println: " + str);
 }
 
 bool ScreenUtil::updateSDStatus(String filePath)

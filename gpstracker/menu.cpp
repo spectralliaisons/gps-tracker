@@ -75,7 +75,7 @@ menu_command Menu::getMenuCommand()
       // user still touching screen, so we'll track the touch point to check for a swipe when they release
       _touchOffX = touchPoint.x;
 
-      SDUtil::log("_touchOffX: " + String(_touchOffX));
+//      SDUtil::log("_touchOffX: " + String(_touchOffX));
     }
   }
   else // touch state changed...
@@ -85,7 +85,7 @@ menu_command Menu::getMenuCommand()
       // touch just on
       _touchOnX = touchPoint.x;
 
-      SDUtil::log("_touchOnX: " + String(_touchOnX));
+//      SDUtil::log("_touchOnX: " + String(_touchOnX));
     } 
     else
     {
@@ -94,18 +94,18 @@ menu_command Menu::getMenuCommand()
       // was this a swipe to toggle sleep/wake state?
       if (detectToggleSleep())
       {
-        SDUtil::log("SWIPED");
+        SDUtil::log("Menu::getMenuCommand : TOGGLE SLEEP/WAKE");
         
         if (_state == MenuState_sleep)
         {
-          SDUtil::log("AWAKE");
+          SDUtil::log("Menu::getMenuCommand : AWAKE");
           
           _state = MenuState_awake;
           cmd = Menu_wake;
         }
         else
         {
-          SDUtil::log("SLEEP");
+          SDUtil::log("Menu::getMenuCommand : SLEEP");
           
           _state = MenuState_sleep;
           cmd = Menu_sleep;
@@ -151,7 +151,7 @@ void Menu::resetSwipeListener()
 {
   // reset swipe listener
   _touchOnX = _touchOffX = -1.0;
-  SDUtil::log("Menu::resetSwipeListener() _touchOnX = _touchOffX = " + String(_touchOnX));
+//  SDUtil::log("Menu::resetSwipeListener() _touchOnX = _touchOffX = " + String(_touchOnX));
 }
 
 bool Menu::detectToggleSleep()
@@ -207,7 +207,7 @@ point Menu::getTouchPoint()
     touchPoint.y = Pythagoras::scale(TS_MAXX, TS_MINX, 0, 1, x);
     touchPoint.x = Pythagoras::scale(TS_MINY, TS_MAXY, 0, 1, y);
 
-    SDUtil::log("touch.readData: x: " + String(touchPoint.x) + ", y: " + String(touchPoint.y));
+//    SDUtil::log("touch.readData: x: " + String(touchPoint.x) + ", y: " + String(touchPoint.y));
   }
   touch.writeRegister8(STMPE_INT_STA, 0xFF); // reset all ints
 
