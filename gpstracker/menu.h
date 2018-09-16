@@ -3,7 +3,6 @@
 
 #include "Arduino.h"
 #include "pythagoras.h"
-#include "timer.h"
 
 // TFT Touchscreen
 #include "Adafruit_HX8357.h"
@@ -11,30 +10,49 @@
 
 typedef enum {
   Menu_ignore,
-  Menu_updateZoom,
-  Menu_touchOff,
   Menu_sleep,
-  Menu_touched,
+  Menu_wake,
+  Menu_zoom,
 } menu_command;
+
+typedef enum {
+  MenuState_sleep,
+  MenuState_awake
+} menu_state;
 
 class Menu
 {
   public:
     Menu();
+    
     menu_command getMenuCommand();
-    bool isZoomUnchanged();
-    bool isTouched();
-    void startMenuTimer();
-    float getFeetToPixelsByZoom();
+    
+    float currFeetToPixels();
    
    private:
-   Timer *_sleepTimer;
-   
+    menu_state _state;
+    
+    float _touchOnX;
+    float _touchOffX;
+
+    float _currFeetToPixels;
+    
     bool _isTouched;
     bool _lastTouchState;
 
-    float _currZoom;
-    float _lastZoom;
+    bool touchIsValid(point p);
+
+    point getTouchPoint();
+    point invalidTouchPoint();
+    
+    bool detectToggleSleep();
+    bool detectZoomIn();
+    bool detectZoomOut();
+
+    void zoomIn();
+    void zoomOut();
+
+    void resetSwipeListener();
 };
 
 #endif

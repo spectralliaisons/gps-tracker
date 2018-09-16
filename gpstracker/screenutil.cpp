@@ -57,20 +57,27 @@ screen_command ScreenUtil::getScreenCommand()
   switch (menuCmd)
   {
     case Menu_sleep:
+      SDUtil::log("ScreenUtil menu sleep");
+      
       setBacklightAndClearScreen(BACKLIGHT_LEVEL_LO);
       
-      showMsg("Drag finger vertically, release to zoom.");
+      showMsg("Swipe right to wake/sleep.");
       
       screenCmd = Screen_drawBattery;
       break;
       
-    case Menu_updateZoom:
-      analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_HI);
+    case Menu_zoom:
+      SDUtil::log("ScreenUtil menu zoom");
+      setBacklightAndClearScreen(BACKLIGHT_LEVEL_HI);
       
       updateZoomDisplay();
+
+      screenCmd = Screen_drawMap;
       break;
     
-    case Menu_touchOff:
+    case Menu_wake:
+      SDUtil::log("ScreenUtil menu wake");
+      
       setBacklightAndClearScreen(BACKLIGHT_LEVEL_HI);
       
       showMsg("Rendering track...");
@@ -124,7 +131,7 @@ void ScreenUtil::println(int x, int y, int size, int color, String str, int bg)
   tft.setTextColor(color); 
   tft.println(str);
 
-  SDUtil::log("ScreenUtil::println::" + str);
+//  SDUtil::log("ScreenUtil::println::" + str);
 }
 
 bool ScreenUtil::updateSDStatus(String filePath)
@@ -189,10 +196,7 @@ void ScreenUtil::updateGPSDisplay(String trackFilepath, String mapFilepath)
   drawGPSTrack(trackFilepath, currGeoloc);
   drawGPSTrack(mapFilepath, currGeoloc);
 
-  showMsg("Updated GPS display in " + String(millis() - t0) + "ms.");
-
-  // screen sleeps after while of no interaction in map mode
-  _menu->startMenuTimer();
+  SDUtil::log("Updated GPS display in " + String(millis() - t0) + "ms.");
 }
 
 void ScreenUtil::drawGPSTrack(String filePath, geoloc currGeoloc)
@@ -226,7 +230,7 @@ void ScreenUtil::drawGPSTrack(String filePath, geoloc currGeoloc)
   }
   file.close();
 
-  SDUtil::log("Rendered " + String(numPointsOnscreen) + "/" + String(numPoints) + " locations in " + String(millis() - t0) + "ms.");
+  showMsg("Rendered " + String(numPointsOnscreen) + "/" + String(numPoints) + " locations in " + String(millis() - t0) + "ms.");
 }
 
 geoloc ScreenUtil::findCurrGeoloc(String filePath)
@@ -384,12 +388,12 @@ bool ScreenUtil::pointIsOnscreen(point p)
 
 float ScreenUtil::feetToPixels(float ft)
 {
-  return ft * _menu->getFeetToPixelsByZoom();
+  return ft * _menu->currFeetToPixels();
 }
 
 float ScreenUtil::pixelsToFeet(float px)
 {
-  return px / _menu->getFeetToPixelsByZoom();
+  return px / _menu->currFeetToPixels();
 }
 
 /**
