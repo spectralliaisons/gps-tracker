@@ -24,14 +24,14 @@ GpsUtil *gps;
 // whater display we are using
 ScreenUtil *screen;
 
-/**
+/**`
  * Initialize
  */
 void setup() 
 {  
   // initialize console logging & wait for serial port to connect.
   Serial.begin(115200);
-//  while (!Serial) {;} // only uncomment this if you're connected via USB or else board reset will not work!
+  while (!Serial) {;} // only uncomment this if you're connected via USB or else board reset will not work!
 
   String errMsg = SDUtil::init();
   
@@ -74,6 +74,11 @@ void loop()
   String gpsTrack = gps->getTrackFilepath();
 //  if (!screen->updateSDStatus(gpsTrack))
 //    SDUtil::init(); // try to find it again (e.g. if user inserts)
+//  if (!screen->updateSDStatus(gpsTrack))
+//  {
+//    Serial.println("NO SD CARD!");
+//    return;
+//  }
 
   String gpsMap = gps->getMapFilepath();
 
@@ -81,9 +86,9 @@ void loop()
   {
     // GPS text summary
     screen->updateGPSText(gps->getGPS());
-  
+    
     // GPS display
 //    screen->updateGPSDisplay(gpsTrack, gpsMap);
-    screen->updateGPSDisplay(gpsMap, gpsMap);  
+    screen->updateGPSDisplay(gps->getGPS(), gpsMap, gpsMap);
   }
 }

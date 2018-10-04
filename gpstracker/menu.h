@@ -6,13 +6,13 @@
 
 // TFT Touchscreen
 #include "Adafruit_HX8357.h"
-#include <Adafruit_STMPE610.h>
 
 typedef enum {
   Menu_ignore,
   Menu_sleep,
   Menu_wake,
   Menu_zoom,
+  Menu_swiping
 } menu_command;
 
 typedef enum {
@@ -28,6 +28,7 @@ class Menu
     menu_command getMenuCommand();
     
     float currMaxDisplayableFeet();
+    void getTouchOnAndOffPoints(float *on, float *off, float *pct);
    
    private:
     menu_state _state;

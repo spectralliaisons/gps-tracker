@@ -11,7 +11,7 @@
 
 #define LOG_BATTERY true
 #define LOG_DELAY 10000
-#define LOG_PREFIX "BAT"
+#define LOG_PREFIX "BATTERY"
 
 #define UPDATE_DELAY 10000
 

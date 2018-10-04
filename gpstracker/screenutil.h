@@ -38,11 +38,12 @@ class ScreenUtil
   public:
     ScreenUtil(String initMsg);
     screen_command getScreenCommand();
+    void updateSwipeDisplay();
     void updateZoomDisplay();
     void updateBatteryDisplay(String displayCharge, bool isLow);
     void println(int x, int y, int size, int color, String str, int bg=BG); // HX8357_BLACK // bg = HX8357_BLUE for debugging to see "text field" area
     void updateGPSText(Adafruit_GPS gps);
-    void updateGPSDisplay(String trackFilepath, String mapFilepath);
+    void updateGPSDisplay(Adafruit_GPS gps, String trackFilepath, String mapFilepath);
     void drawGPSTrack(String filePath, geoloc currGeoloc);
     bool updateSDStatus(String filePath);
    
@@ -53,6 +54,9 @@ class ScreenUtil
 
     int _batteryTopPos;
     int _batteryBottomPos;
+
+    int _sdStatusTopPos;
+    int _sdStatusBottomPos;
 
     int textHeightForSize(int size);
     int textWidthForSize(int size);
@@ -70,6 +74,10 @@ class ScreenUtil
 
     float feetToPixels(float feet);
     float pixelsToFeet(float px);
+
+    void drawBmp(char *filename, uint16_t x, uint16_t y);
+    uint16_t read16(File &f);
+    uint32_t read32(File &f);
 };
 
 #endif

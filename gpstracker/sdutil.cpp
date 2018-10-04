@@ -13,11 +13,11 @@ RTC_Millis rtc;
 
 #define SD_CHIP 4
 
-#define FILENAME_LENGTH 7 // num chars not including suffix
+#define FILENAME_LENGTH 8 // num chars not including suffix
 #define MAX_DIRECTORY_NAME_LENGTH 8 // num chars not including final "/"
 
 // for debugging, all calls to print to console are logged on SD card
-#define LOG_PREFIX "LOG"
+#define LOG_PREFIX "LOGFILE"
 
 String SDUtil::_currLog = "";
 String SDUtil::_currDirectory = "";
@@ -65,15 +65,22 @@ String SDUtil::makeNewDirectory()
   String dir0 = year + month + day;
   String dir1 = padFilename("", MAX_DIRECTORY_NAME_LENGTH, "/");
   _currDirectory = dir0 + "/" + dir1;
+
+  if (SD.exists(_currDirectory))
+  {
+    Serial.println(_currDirectory + " exists and that's ok");
+    return "";
+  }
   
   if (SD.mkdir(_currDirectory))
   {
+    Serial.println(_currDirectory + " was created ok");
     return "";
   }
   else
   {
-    Serial.println("ERROR: Could not create directory for logs.");
-    return "ERROR: Could not create directory for logs.";
+    Serial.println("ERROR: Could not create directory for logs at: " + _currDirectory);
+    return "ERROR: creating log dir: " + _currDirectory;
   }
 }
 
@@ -89,6 +96,7 @@ String SDUtil::padFilename(String prefix, int maxLength, String suffix)
 {
   int n = 0;
   String checkFilename = "";
+  bool alreadyExists = true;
   
   do
   {
@@ -104,7 +112,12 @@ String SDUtil::padFilename(String prefix, int maxLength, String suffix)
     id += nstr;
     
     checkFilename = prefix + id + suffix;
-  } while (SD.exists(checkFilename));
+
+    alreadyExists = SD.exists(checkFilename);
+    
+    Serial.println("checking existence of " + checkFilename + ": " + String(alreadyExists));
+    
+  } while (alreadyExists);
 
   log("SDUtil creating: " + checkFilename);
 

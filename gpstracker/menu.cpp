@@ -2,6 +2,7 @@
 #include "menu.h"
 #include "pythagoras.h"
 #include "sdutil.h"
+#include <Adafruit_STMPE610.h>
 
 // This is calibration data for the raw touch data to the screen coordinates
 #define TS_MIN 300
@@ -25,7 +26,10 @@ Menu::Menu()
 {
   // initialize touchscreen
   if (!touch.begin())
+  {
+    SDUtil::log("Menu::Menu: waiting for touchscreen...");
     while (1);
+  }
 
   _state = MenuState_sleep;
 
@@ -69,6 +73,8 @@ menu_command Menu::getMenuCommand()
       _touchOffX = touchPoint.x;
 
 //      SDUtil::log("_touchOffX: " + String(_touchOffX));
+
+      cmd = Menu_swiping;
     }
   }
   else // touch state changed...
@@ -177,6 +183,13 @@ void Menu::zoomOut()
 float Menu::currMaxDisplayableFeet()
 {
   return _currMaxDisplayableFeet;
+}
+
+void Menu::getTouchOnAndOffPoints(float *on, float *off, float *pct)
+{
+  *on = _touchOnX;
+  *off = _touchOffX;
+  *pct = max(0, min(1, (_touchOffX - _touchOnX) / 0.5));
 }
 
 /**

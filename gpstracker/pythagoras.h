@@ -19,6 +19,7 @@ class Pythagoras
 {
   public:
     static geoloc invalidGeoloc();
+    static bool isValidGeoloc(geoloc g);
     static String geolocToString(geoloc g);
     static float cmToFeet(float cm);
     static float degToRad(float deg);

@@ -19,7 +19,9 @@
 #define FEET_PER_MILE 5280
 
 #define DEF_TEXT_SIZE 2
-#define TEXT_PAD_Y 5
+#define PADDING 5
+#define ICON_SIZE 18
+#define ZOOM_ICON_SIZE 48
 
 #define FEET_PER_MILE 5280
 #define MIN_DISPLAYED_FEET (FEET_PER_MILE / 3)
@@ -36,13 +38,14 @@ ScreenUtil::ScreenUtil(String initMsg)
   tft.setRotation(1);
   tft.fillScreen(BG);
 
-  SDUtil::log("screen initialized. width: " + String(tft.width()) + " height: " + String(tft.height()));
+  SDUtil::log("ScreenUtil::ScreenUtil: screen initialized. width: " + String(tft.width()) + " height: " + String(tft.height()));
   
   analogWrite(BACKLIGHT_PIN, BACKLIGHT_LEVEL_LO);
 
   _menu = new Menu();
 
   _batteryBottomPos = -999;
+  _sdStatusBottomPos = -999;
 
   showMsg(initMsg);
 }
@@ -64,6 +67,10 @@ screen_command ScreenUtil::getScreenCommand()
       showMsg("Swipe right to wake/sleep.");
       
       screenCmd = Screen_drawBattery;
+      break;
+
+    case Menu_swiping:
+      updateSwipeDisplay();
       break;
       
     case Menu_zoom:
@@ -97,13 +104,16 @@ void ScreenUtil::showMsg(String msg)
   _window.cx = (_window.width)/2 + _window.x;
   _window.cy = (_window.height)/2 + _window.y;
 
-  _batteryTopPos = _window.y + TEXT_PAD_Y;
+  _batteryTopPos = _window.y + PADDING;
   _batteryBottomPos = _batteryTopPos + textHeightForSize(DEF_TEXT_SIZE);
+
+  _sdStatusTopPos = _batteryTopPos;
+  _sdStatusBottomPos = _batteryBottomPos;
 }
 
 int ScreenUtil::textHeightForSize(int size)
 {
-  return size * 7;
+  return max(ICON_SIZE, size * 7); // icon height
 }
 
 int ScreenUtil::textWidthForSize(int size)
@@ -130,25 +140,36 @@ bool ScreenUtil::updateSDStatus(String filePath)
   
   if (!file)
   {
-    showMsg("ERROR: Could not load file from SD card");
+    drawBmp("ui/sderr.bmp", _window.x + _window.width - ICON_SIZE - PADDING, _sdStatusTopPos);
     return false;
   }
   else
   {
-//    showMsg("");
+    drawBmp("ui/sdok.bmp", _window.x + _window.width - ICON_SIZE - PADDING, _sdStatusTopPos);
     return true;
   }
 }
 
 void ScreenUtil::updateBatteryDisplay(String displayCharge, bool isLow)
 {
-  println(_window.x, _batteryTopPos, DEF_TEXT_SIZE, isLow ? HX8357_RED : HX8357_GREEN, "[BATTERY] " + displayCharge + "%");
+  drawBmp("ui/battery.bmp", _window.x, _batteryTopPos);
+  println(_window.x + ICON_SIZE + PADDING, _batteryTopPos, DEF_TEXT_SIZE, isLow ? HX8357_RED : HX8357_GREEN, displayCharge + "%");
+}
+
+void ScreenUtil::updateSwipeDisplay()
+{
+  float x0, x1, pct;
+  x0 = x1 = pct = 0.0;
+  _menu->getTouchOnAndOffPoints(&x0, &x1, &pct);
+  showMsg("swiping: " + String(pct) + "%");
 }
 
 void ScreenUtil::updateGPSText(Adafruit_GPS gps)
 {
   int left = _window.x;
-  int top = _batteryBottomPos + TEXT_PAD_Y; // below battery text area
+  int top = _sdStatusBottomPos + PADDING; // below battery text area
+  int y = 0;
+  int iconPadding = ICON_SIZE + PADDING;
 
   String lat, lng, alt, sat;
 
@@ -160,19 +181,28 @@ void ScreenUtil::updateGPSText(Adafruit_GPS gps)
     sat = String(gps.satellites);
   }
   else 
+  {
     lat = lng = alt = sat = NONE;
+  }
 
   String currPos = String(lat) + "_" + String(lng);
-  
-  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*0, DEF_TEXT_SIZE, HX8357_YELLOW, "lat: " + lat);
-  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*1, DEF_TEXT_SIZE, HX8357_YELLOW, "lng: " + lng);
-  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*2, DEF_TEXT_SIZE, HX8357_YELLOW, "altitude (feet): " + alt);
-  println(left, top + (textHeightForSize(DEF_TEXT_SIZE) + TEXT_PAD_Y)*3, DEF_TEXT_SIZE, HX8357_YELLOW, "satellites: " + sat);
+
+  y = top + (textHeightForSize(DEF_TEXT_SIZE) + PADDING)*0;
+  drawBmp("ui/globe.bmp", left, y);
+  println(left + iconPadding, y, DEF_TEXT_SIZE, HX8357_YELLOW, lat + ", " + lng);
+
+  y = top + (textHeightForSize(DEF_TEXT_SIZE) + PADDING)*1;
+  drawBmp("ui/mts.bmp", left, y);
+  println(left + iconPadding, y, DEF_TEXT_SIZE, HX8357_YELLOW, alt + "ft");
+
+  y = top + (textHeightForSize(DEF_TEXT_SIZE) + PADDING)*2;
+  drawBmp("ui/sat.bmp", left, y);
+  println(left + iconPadding, y, DEF_TEXT_SIZE, HX8357_YELLOW, sat);
 }
 
 // DISPLAY GPS COORDS
 
-void ScreenUtil::updateGPSDisplay(String trackFilepath, String mapFilepath)
+void ScreenUtil::updateGPSDisplay(Adafruit_GPS gps, String trackFilepath, String mapFilepath)
 {
   uint32_t t0 = millis();
   
@@ -187,6 +217,17 @@ void ScreenUtil::updateGPSDisplay(String trackFilepath, String mapFilepath)
   drawGPSTrack(mapFilepath, currGeoloc);
 
   SDUtil::log("Updated GPS display in " + String(millis() - t0) + "ms.");
+
+  // central icon indicates if we have gps fix or not
+  char *icon = const_cast<char *>(gps.fix ? "ui/gpsfix.bmp" : "ui/gpsnofix.bmp");
+  drawBmp(icon, _window.cx - ICON_SIZE/2, _window.cy - ICON_SIZE/2);
+
+  // show zoom icons to indicate we can now receive touches
+  int xIn = 0;
+  int xOut = _window.width - ZOOM_ICON_SIZE;
+
+  drawBmp("ui/zin.bmp", xIn, _window.y + _window.height - ZOOM_ICON_SIZE);
+  drawBmp("ui/zout.bmp", xOut, _window.y + _window.height - ZOOM_ICON_SIZE);
 }
 
 void ScreenUtil::drawGPSTrack(String filePath, geoloc currGeoloc)
@@ -335,7 +376,7 @@ void ScreenUtil::drawDistancesFrom(geoloc currGeoloc)
       tft.drawCircle(_window.cx, _window.cy, r+2, BG);
       tft.drawCircle(_window.cx, _window.cy, r+3, HX8357_WHITE);
 
-      tft.setCursor(_window.cx + feetToPixels(feet) + 5, _window.cy - 10);
+      tft.setCursor(_window.cx + feetToPixels(feet) + PADDING, _window.cy - 10);
       tft.setTextSize(1);
       tft.setTextColor(HX8357_YELLOW); 
 
@@ -408,4 +449,148 @@ geoloc ScreenUtil::pointToGeoloc(point pt)
     geoloc g = Pythagoras::invalidGeoloc();
     
     return g;
+}
+
+/** BITMAP DRAWING **/
+
+// This function opens a Windows Bitmap (BMP) file and
+// displays it at the given coordinates.  It's sped up
+// by reading many pixels worth of data at a time
+// (rather than pixel by pixel).  Increasing the buffer
+// size takes more of the Arduino's precious RAM but
+// makes loading a little faster.  20 pixels seems a
+// good balance.
+
+#define BUFFPIXEL 20
+
+void ScreenUtil::drawBmp(char *filename, uint16_t x, uint16_t y) 
+{
+  File     bmpFile;
+  int      bmpWidth, bmpHeight;   // W+H in pixels
+  uint8_t  bmpDepth;              // Bit depth (currently must be 24)
+  uint32_t bmpImageoffset;        // Start of image data in file
+  uint32_t rowSize;               // Not always = bmpWidth; may have padding
+  uint8_t  sdbuffer[3*BUFFPIXEL]; // pixel buffer (R+G+B per pixel)
+  uint8_t  buffidx = sizeof(sdbuffer); // Current position in sdbuffer
+  boolean  goodBmp = false;       // Set to true on valid header parse
+  boolean  flip    = true;        // BMP is stored bottom-to-top
+  int      w, h, row, col;
+  uint8_t  r, g, b;
+  uint32_t pos = 0, startTime = millis();
+
+  if((x >= tft.width()) || (y >= tft.height()))
+  {
+    SDUtil::log("ScreenUtil::drawBmp:" + String(filename) + ":ERROR: Image position exceeds screen bounds.");
+    return;
+  }
+
+  // Open requested file on SD card
+  if ((bmpFile = SD.open(filename)) == NULL) {
+    SDUtil::log("ScreenUtil::drawBmp:" + String(filename) + ":ERROR: File not found.");
+    return;
+  }
+
+  // Parse BMP header
+  if(read16(bmpFile) == 0x4D42) { // BMP signature
+    read32(bmpFile); // print this if you want to know the file size
+    (void)read32(bmpFile); // Read & ignore creator bytes
+    bmpImageoffset = read32(bmpFile); // Start of image data
+    // Read DIB header
+    read32(bmpFile); // print this if you want to know header size
+    bmpWidth  = read32(bmpFile);
+    bmpHeight = read32(bmpFile);
+    if(read16(bmpFile) == 1) { // # planes -- must be '1'
+      bmpDepth = read16(bmpFile); // bits per pixel
+      if((bmpDepth == 24) && (read32(bmpFile) == 0)) { // 0 = uncompressed
+
+        goodBmp = true; // Supported BMP format -- proceed!
+
+        // BMP rows are padded (if needed) to 4-byte boundary
+        rowSize = (bmpWidth * 3 + 3) & ~3;
+
+        // If bmpHeight is negative, image is in top-down order.
+        // This is not canon but has been observed in the wild.
+        if(bmpHeight < 0) {
+          bmpHeight = -bmpHeight;
+          flip      = false;
+        }
+
+        // Crop area to be loaded
+        w = bmpWidth;
+        h = bmpHeight;
+        if((x+w-1) >= tft.width())  w = tft.width()  - x;
+        if((y+h-1) >= tft.height()) h = tft.height() - y;
+
+        // Set TFT address window to clipped image bounds
+        tft.startWrite(); // Start TFT transaction
+        tft.setAddrWindow(x, y, w, h);
+
+        for (row=0; row<h; row++) { // For each scanline...
+
+          // Seek to start of scan line.  It might seem labor-
+          // intensive to be doing this on every line, but this
+          // method covers a lot of gritty details like cropping
+          // and scanline padding.  Also, the seek only takes
+          // place if the file position actually needs to change
+          // (avoids a lot of cluster math in SD library).
+          if(flip) // Bitmap is stored bottom-to-top order (normal BMP)
+            pos = bmpImageoffset + (bmpHeight - 1 - row) * rowSize;
+          else     // Bitmap is stored top-to-bottom
+            pos = bmpImageoffset + row * rowSize;
+          if(bmpFile.position() != pos) { // Need seek?
+            tft.endWrite(); // End TFT transaction
+            bmpFile.seek(pos);
+            buffidx = sizeof(sdbuffer); // Force buffer reload
+            tft.startWrite(); // Start new TFT transaction
+          }
+
+          for (col=0; col<w; col++) { // For each pixel...
+            // Time to read more pixel data?
+            if (buffidx >= sizeof(sdbuffer)) { // Indeed
+              tft.endWrite(); // End TFT transaction
+              bmpFile.read(sdbuffer, sizeof(sdbuffer));
+              buffidx = 0; // Set index to beginning
+              tft.startWrite(); // Start new TFT transaction
+            }
+
+            // Convert pixel from BMP to TFT format, push to display
+            b = sdbuffer[buffidx++];
+            g = sdbuffer[buffidx++];
+            r = sdbuffer[buffidx++];
+            tft.pushColor(tft.color565(r,g,b));
+          } // end pixel
+        } // end scanline
+        tft.endWrite(); // End last TFT transaction
+      } // end goodBmp
+    }
+  }
+
+  bmpFile.close();
+  
+  if (!goodBmp)
+    SDUtil::log("ScreenUtil::drawBmp:" + String(filename) + ":ERROR: BMP format not recognized.");
+  else
+    SDUtil::log("ScreenUtil::drawBmp:" + String(filename) + ":OK: loaded in " + String(millis() - startTime) + "ms");
+}
+
+// These read 16- and 32-bit types from the SD card file.
+// BMP data is stored little-endian, Arduino is little-endian too.
+// May need to reverse subscript order if porting elsewhere.
+
+uint16_t ScreenUtil::read16(File &f) 
+{
+  uint16_t result;
+  ((uint8_t *)&result)[0] = f.read(); // LSB
+  ((uint8_t *)&result)[1] = f.read(); // MSB
+  return result;
+}
+
+uint32_t ScreenUtil::read32(File &f) 
+{
+  uint32_t result;
+  ((uint8_t *)&result)[0] = f.read(); // LSB
+  ((uint8_t *)&result)[1] = f.read();
+  ((uint8_t *)&result)[2] = f.read();
+  ((uint8_t *)&result)[3] = f.read(); // MSB
+  return result;
 }

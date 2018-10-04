@@ -8,6 +8,11 @@ geoloc Pythagoras::invalidGeoloc()
   return {1/0, 1/0};
 }
 
+bool Pythagoras::isValidGeoloc(geoloc g)
+{
+  return abs(g.lat) <= 90 && abs(g.lng) <= 180;
+}
+
 String Pythagoras::geolocToString(geoloc g)
 {
   return "{lat: " + String(g.lat) + ", lng: " + String(g.lng) + "}";
