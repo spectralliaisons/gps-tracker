@@ -62,19 +62,12 @@ String SDUtil::makeNewDirectory()
   if (day.length() < 2)
     day = "0" + day;
 
-  String dir0 = year + month + day;
-  String dir1 = padFilename("", MAX_DIRECTORY_NAME_LENGTH, "/");
-  _currDirectory = dir0 + "/" + dir1;
+  String basePath = year + month + day + "/";
+  _currDirectory = padFilename(basePath, "", MAX_DIRECTORY_NAME_LENGTH, "/");
 
-  if (SD.exists(_currDirectory))
-  {
-    Serial.println(_currDirectory + " exists and that's ok");
-    return "";
-  }
-  
   if (SD.mkdir(_currDirectory))
   {
-    Serial.println(_currDirectory + " was created ok");
+    log("SDUtil::makeNewDirectory:_currDirectory: created " + _currDirectory);
     return "";
   }
   else
@@ -89,10 +82,10 @@ String SDUtil::makeNewDirectory()
  */
 String SDUtil::increment(String prefix)
 {
-  return _currDirectory + padFilename(prefix, FILENAME_LENGTH, ".TXT");
+  return padFilename(_currDirectory, prefix, FILENAME_LENGTH, ".TXT");
 }
 
-String SDUtil::padFilename(String prefix, int maxLength, String suffix)
+String SDUtil::padFilename(String basePath, String prefix, int maxLength, String suffix)
 {
   int n = 0;
   String checkFilename = "";
@@ -111,11 +104,8 @@ String SDUtil::padFilename(String prefix, int maxLength, String suffix)
       id += "0";
     id += nstr;
     
-    checkFilename = prefix + id + suffix;
-
+    checkFilename = basePath + prefix + id + suffix;
     alreadyExists = SD.exists(checkFilename);
-    
-    Serial.println("checking existence of " + checkFilename + ": " + String(alreadyExists));
     
   } while (alreadyExists);
 

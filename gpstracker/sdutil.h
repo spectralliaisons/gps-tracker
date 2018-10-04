@@ -15,7 +15,7 @@ class SDUtil
     static String _currDirectory;
    	static String _currLog;
     static String makeNewDirectory();
-    static String padFilename(String prefix, int maxLength, String suffix);
+    static String padFilename(String basePath, String prefix, int maxLength, String suffix);
 };
 
 #endif
